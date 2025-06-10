@@ -13,8 +13,9 @@
             theme: {
                 extend: {
                     colors: {
-                        'accent': '#0071e3',
+                        'accent': '#0071e3', // Original blue
                         'success': '#10b981', // Emerald 500
+                        'warning': '#f59e0b', // Amber 500
                         'light-blue': '#f0f9ff', // Sky 50
                     },
                 }
@@ -28,9 +29,9 @@
             --subtle-text-color: #6e6e73;
             --accent-color: #0071e3;
             --success-color: #10b981;
+            --warning-color: #f59e0b;
             --border-color: #d2d2d7;
             --card-bg: #ffffff;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
         }
 
@@ -60,12 +61,13 @@
         @media (min-width: 640px) {
             .tab-button { margin: 0 0.5rem; padding: 0.5rem 1.25rem; }
         }
-
+        
+        /* Active Tab Style */
         .tab-button.active {
-            color: var(--accent-color);
             font-weight: 600;
-            background-color: #eaf5ff;
-            border-color: #aed8f6;
+            background-color: #d1fae5;
+            color: #1e3a8a;
+            border-color: #a7f3d0;
         }
         
         .tab-content {
@@ -120,12 +122,6 @@
             padding-right: 2.5rem;
         }
         
-        select option.recommended-cannula {
-            background-color: var(--success-color);
-            color: white;
-            font-weight: 600;
-        }
-        
         .mode-button {
             transition: all 0.3s ease;
             border: 1px solid var(--border-color);
@@ -170,12 +166,12 @@
         .cannula-graph svg { width: 100%; height: auto; }
         .cannula-graph .axis-label { font-size: 10px; fill: var(--subtle-text-color); }
         .cannula-graph .curve { fill: none; stroke-width: 2.5; transition: stroke 0.4s ease, stroke-width 0.4s ease; }
-        .cannula-graph .curve-active { stroke-width: 4; stroke: var(--accent-color); }
+        .cannula-graph .curve-active { stroke: var(--accent-color); stroke-width: 4; }
         .cannula-graph .curve-inactive { stroke: #d1d5db; opacity: 0.6; } /* gray-300 */
         .cannula-graph .axis-line { stroke: #9ca3af; stroke-width: 1.5; } /* gray-400 */
         .cannula-graph .grid-line { stroke: #e5e7eb; stroke-dasharray: 2 4; stroke-width: 1; } /* gray-200 */
         .cannula-graph .limit-line { stroke: #ef4444; stroke-width: 1.5; stroke-dasharray: 4 4; } /* red-500 */
-        .cannula-graph .target-flow-range { fill: #3b82f6; opacity: 0.1; } /* blue-500 */
+        .cannula-graph .target-flow-range { fill: var(--accent-color); opacity: 0.1; }
         .cannula-graph .target-flow-line { stroke: #1e40af; stroke-width: 2; } /* dark blue */
         .cannula-graph .op-point { r: 0; transition: r 0.3s ease; }
         .cannula-graph .op-point.visible { fill: var(--accent-color); stroke: white; stroke-width: 2; r: 5; }
@@ -187,11 +183,10 @@
     <div class="main-container mx-auto max-w-7xl opacity-0">
         
         <header class="text-center mb-10 md:mb-12">
-            <h1 class="text-3xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-green-500 text-transparent bg-clip-text">ECMO Suite</h1>
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-green-500 text-transparent bg-clip-text">ECMO Suite</h1>
             <p class="text-gray-600 mt-3 text-base md:text-lg">Precision Calculators for Critical Care.</p>
         </header>
 
-        <!-- Tabs Navigation -->
         <div class="mb-8 border-b border-gray-200 flex justify-center flex-wrap">
             <nav class="flex items-center p-1" aria-label="Tabs">
                 <button class="tab-button active" data-tab="flow">ECMO Flow</button>
@@ -201,15 +196,13 @@
             </nav>
         </div>
 
-        <!-- Tab Content Wrapper -->
         <div class="relative">
-            <!-- Flow Calculator -->
             <div id="flow-content" class="tab-content">
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
                     <div class="lg:col-span-3">
-                         <div class="card p-6 md:p-8 h-full">
+                         <div class="card p-6 md:p-8 h-full flex flex-col">
                              <h2 class="text-2xl font-semibold mb-6 text-gray-800">Calculate Required Blood Flow</h2>
-                             <div class="grid grid-cols-1 gap-y-6">
+                             <div class="grid grid-cols-1 gap-y-6 flex-grow">
                                 <div>
                                    <label class="block text-sm font-medium text-gray-600 mb-2">ECMO Mode</label>
                                    <div class="flex rounded-lg border border-gray-200 p-1">
@@ -255,7 +248,7 @@
                              <div id="flow-result-container" class="mt-8">
                                   <div class="result-display p-6 text-center space-y-2">
                                      <h3 class="font-semibold text-lg text-gray-800 mb-1">Calculated ECMO Target Flow</h3>
-                                     <p id="flow-result" class="text-4xl font-bold text-accent"></p>
+                                     <p id="flow-result" class="text-3xl sm:text-4xl font-bold text-accent"></p>
                                      <div id="va-result-details" class="text-sm text-gray-600"></div>
                                      <div id="va-support-percent" class="text-lg font-semibold text-gray-800 mt-2"></div>
                                  </div>
@@ -292,11 +285,8 @@
                 </div>
             </div>
 
-            <!-- Cannula Sizing Calculator -->
             <div id="cannula-content" class="tab-content hidden"></div>
-            <!-- Heparin Protocol Calculator -->
             <div id="heparin-content" class="tab-content hidden"></div>
-            <!-- Oxygenation & Health Calculator -->
             <div id="oxygenation-content" class="tab-content hidden"></div>
         </div>
         
@@ -326,7 +316,7 @@ function getCannulaSizingHTML() {
                     </div>
                     <div class="space-y-2 pt-2">
                        <h4 class="font-semibold text-gray-800">Cannula Selection</h4>
-                       <label for="drainage-cannula-select" class="block text-xs font-medium text-gray-500">Drainage</label>
+                       <label for="drainage-cannula-select" class="block text-xs font-medium text-gray-500 mt-2">Drainage</label>
                        <select id="drainage-cannula-select" class="w-full p-3 input-field"></select>
                        <label for="return-cannula-select" class="block text-xs font-medium text-gray-500 mt-2">Return</label>
                        <select id="return-cannula-select" class="w-full p-3 input-field"></select>
@@ -353,7 +343,6 @@ function getHeparinProtocolHTML() {
             <div class="card p-6 md:p-8 h-full">
                 <h2 class="text-2xl font-semibold mb-6 text-gray-800">Heparin Infusion Protocol</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8">
-                    <!-- Left Column: Inputs and Results -->
                     <div class="space-y-6">
                          <div>
                            <label class="block text-sm font-medium text-gray-600 mb-2">Patient & Lab Data</label>
@@ -373,7 +362,6 @@ function getHeparinProtocolHTML() {
                             <div class="result-display p-4"><h4 class="font-semibold text-gray-800">New Infusion Rate</h4><p id="heparin-new-rate" class="text-lg font-bold text-accent"></p></div>
                        </div>
                     </div>
-                    <!-- Right Column: Protocol Selection -->
                     <div class="space-y-6">
                         <div>
                            <label class="block text-sm font-medium text-gray-600 mb-2">Protocol & Infusion Setup</label>
@@ -437,7 +425,6 @@ function getHeparinProtocolHTML() {
 function getOxygenationHealthHTML() {
     return `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column: Patient & Circuit Inputs -->
         <div class="lg:col-span-1 space-y-6">
             <div class="card p-6">
                 <h3 class="font-semibold text-lg mb-4">Patient & Circuit Inputs</h3>
@@ -477,8 +464,6 @@ function getOxygenationHealthHTML() {
                 </div>
             </div>
         </div>
-        
-        <!-- Middle Column: Oxygenator Performance -->
         <div class="lg:col-span-1 space-y-6">
              <div class="card p-6">
                 <h3 class="font-semibold text-lg mb-4">Oxygenator Health</h3>
@@ -506,8 +491,6 @@ function getOxygenationHealthHTML() {
                 </div>
             </div>
         </div>
-        
-        <!-- Right Column: Systemic Calculations -->
         <div class="lg:col-span-1 space-y-6">
              <div class="card p-6">
                 <h3 class="font-semibold text-lg mb-4">Systemic Oxygenation</h3>
@@ -545,22 +528,18 @@ function getOxygenationHealthHTML() {
 
 // --- MAIN SCRIPT --- //
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Initial HTML Population ---
     document.getElementById('cannula-content').innerHTML = getCannulaSizingHTML();
     document.getElementById('heparin-content').innerHTML = getHeparinProtocolHTML();
     document.getElementById('oxygenation-content').innerHTML = getOxygenationHealthHTML();
     
-    // --- Global State ---
     let calculatedFlowL = null;
     let ecmoMode = 'VV';
     let heparinProtocol = 'aPTT';
 
-    // --- DOM Elements ---
     const mainContainer = document.querySelector('.main-container');
     const tabs = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
     
-    // --- Flow Calc Elements ---
     const flowVVModeBtn = document.getElementById('flow-vv-mode-btn');
     const flowVAModeBtn = document.getElementById('flow-va-mode-btn');
     const flowVVInputs = document.getElementById('flow-vv-inputs');
@@ -579,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const vaResultDetails = document.getElementById('va-result-details');
     const vaSupportPercentEl = document.getElementById('va-support-percent');
     
-    // --- Cannula Calc Elements ---
     const cannulaWeightSlider = document.getElementById('cannula-weight-slider');
     const cannulaWeightValue = document.getElementById('cannula-weight-value');
     const cannulaFlowInput = document.getElementById('cannula-flow');
@@ -588,7 +566,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const drainageGraphContainer = document.getElementById('drainage-graph-container');
     const returnGraphContainer = document.getElementById('return-graph-container');
 
-    // --- Heparin Calc Elements ---
     const heparinAPTTBtn = document.getElementById('heparin-aptt-btn');
     const heparinACTBtn = document.getElementById('heparin-act-btn');
     const heparinXaBtn = document.getElementById('heparin-xa-btn');
@@ -607,7 +584,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const heparinTargetMinInput = document.getElementById('heparin-target-min');
     const heparinTargetMaxInput = document.getElementById('heparin-target-max');
     
-    // --- Oxygenation Elements ---
     const oxyFlowSlider = document.getElementById('oxy-flow-slider');
     const oxyFlowValue = document.getElementById('oxy-flow-value');
     const oxyHbSlider = document.getElementById('oxy-hb-slider');
@@ -635,9 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const oxyOerResultEl = document.getElementById('oxy-oer-result');
     const oxyTransferResultEl = document.getElementById('oxy-transfer-result');
 
-    // --- Data and Constants ---
     const cannulaDatabase = [
-        // Maquet HLS
         { key: 'M-17V', brand: 'Maquet HLS', type: 'Venous', size: '17 Fr', pressureFunc: flow => -1 * (2.8 * Math.pow(flow, 2) + 6.0 * flow) },
         { key: 'M-19V', brand: 'Maquet HLS', type: 'Venous', size: '19 Fr', pressureFunc: flow => -1 * (1.9 * Math.pow(flow, 2) + 5.0 * flow) },
         { key: 'M-21V', brand: 'Maquet HLS', type: 'Venous', size: '21 Fr', pressureFunc: flow => -1 * (1.3 * Math.pow(flow, 2) + 4.5 * flow) },
@@ -647,8 +621,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { key: 'M-17A', brand: 'Maquet HLS', type: 'Arterial', size: '17 Fr', pressureFunc: flow => 4.5 * Math.pow(flow, 2) + 12 * flow },
         { key: 'M-19A', brand: 'Maquet HLS', type: 'Arterial', size: '19 Fr', pressureFunc: flow => 3.2 * Math.pow(flow, 2) + 10 * flow },
         { key: 'M-21A', brand: 'Maquet HLS', type: 'Arterial', size: '21 Fr', pressureFunc: flow => 2.0 * Math.pow(flow, 2) + 8 * flow },
-        
-        // Medtronic Bio-Medicus
         { key: 'B-17V', brand: 'Medtronic Bio-Medicus', type: 'Venous', size: '17 Fr', pressureFunc: flow => -1 * (3.0 * Math.pow(flow, 2) + 6.5 * flow) },
         { key: 'B-19V', brand: 'Medtronic Bio-Medicus', type: 'Venous', size: '19 Fr', pressureFunc: flow => -1 * (2.2 * Math.pow(flow, 2) + 5.5 * flow) },
         { key: 'B-21V', brand: 'Medtronic Bio-Medicus', type: 'Venous', size: '21 Fr', pressureFunc: flow => -1 * (1.5 * Math.pow(flow, 2) + 5.0 * flow) },
@@ -658,8 +630,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { key: 'B-17A', brand: 'Medtronic Bio-Medicus', type: 'Arterial', size: '17 Fr', pressureFunc: flow => 5.0 * Math.pow(flow, 2) + 13 * flow },
         { key: 'B-19A', brand: 'Medtronic Bio-Medicus', type: 'Arterial', size: '19 Fr', pressureFunc: flow => 3.5 * Math.pow(flow, 2) + 11 * flow },
         { key: 'B-21A', brand: 'Medtronic Bio-Medicus', type: 'Arterial', size: '21 Fr', pressureFunc: flow => 2.5 * Math.pow(flow, 2) + 9 * flow },
-
-        // Edwards Lifesciences
         { key: 'E-18V', brand: 'Edwards Fem-Flex', type: 'Venous', size: '18 Fr', pressureFunc: flow => -1 * (2.5 * Math.pow(flow, 2) + 5.8 * flow) },
         { key: 'E-20V', brand: 'Edwards Fem-Flex', type: 'Venous', size: '20 Fr', pressureFunc: flow => -1 * (1.8 * Math.pow(flow, 2) + 5.2 * flow) },
         { key: 'E-16A', brand: 'Edwards Fem-Flex', type: 'Arterial', size: '16 Fr', pressureFunc: flow => 5.5 * Math.pow(flow, 2) + 14 * flow },
@@ -669,29 +639,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const returnCannulas = cannulaDatabase.filter(c => c.type === 'Arterial').sort((a,b) => parseInt(a.size) - parseInt(b.size));
 
     let protocols = {
-        aPTT: [
-            { range: [0, 45], bolus: 80, change: 4, hold: 0 },
-            { range: [46, 54], bolus: 40, change: 2, hold: 0 },
-            { range: [55, 75], bolus: 0, change: 0, hold: 0 },
-            { range: [76, 90], bolus: 0, change: -2, hold: 0 },
-            { range: [91, 100], bolus: 0, change: -2, hold: 30 },
-            { range: [101, 150], bolus: 0, change: -3, hold: 60 }
-        ],
-        ACT: [
-            { range: [0, 159], bolus: 80, change: 4, hold: 0 },
-            { range: [160, 179], bolus: 40, change: 2, hold: 0 },
-            { range: [180, 220], bolus: 0, change: 0, hold: 0 },
-            { range: [221, 240], bolus: 0, change: -2, hold: 0 },
-            { range: [241, 260], bolus: 0, change: -2, hold: 30 },
-            { range: [261, 300], bolus: 0, change: -3, hold: 60 }
-        ],
-        Xa: [
-            { range: [0, 0.19], bolus: 40, change: 2, hold: 0 },
-            { range: [0.2, 0.29], bolus: 0, change: 1, hold: 0 },
-            { range: [0.3, 0.7], bolus: 0, change: 0, hold: 0 },
-            { range: [0.71, 1.0], bolus: 0, change: -1, hold: 0 },
-            { range: [1.01, 1.5], bolus: 0, change: -2, hold: 60 },
-        ]
+        aPTT: [ { range: [0, 45], bolus: 80, change: 4, hold: 0 }, { range: [46, 54], bolus: 40, change: 2, hold: 0 }, { range: [55, 75], bolus: 0, change: 0, hold: 0 }, { range: [76, 90], bolus: 0, change: -2, hold: 0 }, { range: [91, 100], bolus: 0, change: -2, hold: 30 }, { range: [101, 150], bolus: 0, change: -3, hold: 60 } ],
+        ACT: [ { range: [0, 159], bolus: 80, change: 4, hold: 0 }, { range: [160, 179], bolus: 40, change: 2, hold: 0 }, { range: [180, 220], bolus: 0, change: 0, hold: 0 }, { range: [221, 240], bolus: 0, change: -2, hold: 0 }, { range: [241, 260], bolus: 0, change: -2, hold: 30 }, { range: [261, 300], bolus: 0, change: -3, hold: 60 } ],
+        Xa: [ { range: [0, 0.19], bolus: 40, change: 2, hold: 0 }, { range: [0.2, 0.29], bolus: 0, change: 1, hold: 0 }, { range: [0.3, 0.7], bolus: 0, change: 0, hold: 0 }, { range: [0.71, 1.0], bolus: 0, change: -1, hold: 0 }, { range: [1.01, 1.5], bolus: 0, change: -2, hold: 60 }, ]
     };
     
     const oxygenatorSpecs = {
@@ -703,10 +653,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'eurosets-admiral': { name: 'Eurosets Admiral', tmpRange: [15, 50], watchThreshold: 60, changeThreshold: 75, postO2: 410 },
     };
 
-    // --- Initial Animation ---
     setTimeout(() => mainContainer.style.opacity = '1', 100);
 
-    // --- Tab Logic ---
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const targetId = tab.dataset.tab + '-content';
@@ -720,7 +668,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // --- Shared Functions ---
     function addSliderListener(slider, valueEl, unit, decimals = 1, callback = null) {
         if (!slider) return;
         const update = () => {
@@ -728,10 +675,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if(callback) callback();
         };
         slider.addEventListener('input', update);
-        update(); // Initial call
+        update();
     }
 
-    // --- Flow Calculation Logic ---
     function setFlowMode(mode) {
         ecmoMode = mode;
         const isVV = mode === 'VV';
@@ -748,11 +694,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!weight || weight <= 0) return null;
         if (mode === 'VV') {
             return (weight * rate) / 1000;
-        } else { // VA Mode
+        } else {
             if (!height || height <= 0) return null;
             const bsa = 0.007184 * Math.pow(height, 0.725) * Math.pow(weight, 0.425);
-            const cardiacOutput = bsa * 3.0; // CI of 3.0 L/min/m^2
-            return cardiacOutput * 0.80; // Target 80% support
+            const cardiacOutput = bsa * 3.0;
+            return cardiacOutput * 0.80;
         }
     }
     
@@ -783,7 +729,6 @@ document.addEventListener('DOMContentLoaded', () => {
         flowResultEl.textContent = `${calculatedFlowL.toFixed(2)} L/min`;
     }
 
-    // --- Cannula Sizing Logic ---
     const populateCannulaSelects = () => {
         ['drainage', 'return'].forEach(type => {
             const selectEl = type === 'drainage' ? drainageSelect : returnSelect;
@@ -805,38 +750,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function updateCannulaSizing() {
         const weight = parseFloat(cannulaWeightSlider.value);
-        
-        // Set the default operating flow if the input is empty
         if (!cannulaFlowInput.value) {
-            const defaultFlow = (weight * 60) / 1000; // Default to 60 ml/kg/min
-            cannulaFlowInput.value = defaultFlow.toFixed(2);
+            cannulaFlowInput.value = ((weight * 60) / 1000).toFixed(2);
         }
         
-        // Calculate the recommended flow range and target
+        const operatingFlow = parseFloat(cannulaFlowInput.value) || 0;
         const minFlow = (weight * 50) / 1000;
         const maxFlow = (weight * 70) / 1000;
         const targetFlow = (weight * 60) / 1000;
-        const operatingFlow = parseFloat(cannulaFlowInput.value) || 0;
         
-        // Recommend cannulas based on weight
-        let recDrainageKey, recReturnKey;
-        if (weight < 40) { recDrainageKey = 'B-19V'; recReturnKey = 'M-15A'; }
-        else if (weight < 70) { recDrainageKey = 'M-23V'; recReturnKey = 'B-19A'; }
-        else { recDrainageKey = 'M-25V'; recReturnKey = 'M-21A'; }
-        
-        [drainageSelect, returnSelect].forEach(select => {
-            if(!select.value) select.value = select === drainageSelect ? recDrainageKey : recReturnKey;
-            const recKey = select === drainageSelect ? recDrainageKey : recReturnKey;
-            select.querySelectorAll('option').forEach(opt => opt.classList.toggle('recommended-cannula', opt.value === recKey));
-        });
-        
-        // Generate graphs with the flow range and current operating point
-        const commonOptions = { xMax: 8 };
-        generateSVGGraph(drainageGraphContainer, drainageCannulas, drainageSelect.value, operatingFlow, minFlow, maxFlow, targetFlow, { ...commonOptions, title: 'Drainage Pressure-Flow', yMax: 0, yMin: -100, limit: -60, yAxisLabel: 'Pressure (-mmHg)' });
-        generateSVGGraph(returnGraphContainer, returnCannulas, returnSelect.value, operatingFlow, minFlow, maxFlow, targetFlow, { ...commonOptions, title: 'Return Pressure-Flow', yMax: 300, yMin: 0, limit: 250, yAxisLabel: 'Pressure (+mmHg)' });
+        generateSVGGraph(drainageGraphContainer, drainageCannulas, drainageSelect.value, operatingFlow, minFlow, maxFlow, targetFlow, { title: 'Drainage Pressure-Flow', yMax: 0, yMin: -100, limit: -60, yAxisLabel: 'Pressure (-mmHg)' });
+        generateSVGGraph(returnGraphContainer, returnCannulas, returnSelect.value, operatingFlow, minFlow, maxFlow, targetFlow, { title: 'Return Pressure-Flow', yMax: 300, yMin: 0, limit: 160, yAxisLabel: 'Pressure (+mmHg)' });
     }
-    
-    // --- Heparin Protocol Logic ---
+
     function setHeparinProtocol(protocol) {
         heparinProtocol = protocol;
         [heparinAPTTBtn, heparinACTBtn, heparinXaBtn].forEach(btn => btn.classList.remove('active'));
@@ -920,7 +846,6 @@ document.addEventListener('DOMContentLoaded', () => {
         heparinResultContainer.classList.remove('hidden');
     }
 
-    // --- Oxygenation & Health Logic ---
     function populateOxygenatorSelect() {
         oxyModelSelect.innerHTML = '';
         for (const [key, value] of Object.entries(oxygenatorSpecs)) {
@@ -960,7 +885,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedModelKey = oxyModelSelect.value;
         const modelSpecs = oxygenatorSpecs[selectedModelKey];
 
-        // Systemic Calcs
         const cao2 = calculateOxygenContent(hb, sao2, pao2);
         const cvo2 = calculateOxygenContent(hb, svo2, pvo2);
         
@@ -973,14 +897,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const oer = (cao2 && cvo2 && cao2 > 0) ? ((cao2 - cvo2) / cao2) * 100 : null;
         oxyOerResultEl.innerHTML = `${oer ? oer.toFixed(1) : '-'} <span class="text-base font-normal">%</span>`;
         
-        // Recirculation
         let recirc = null;
         if (!isNaN(preSat) && !isNaN(postSat) && !isNaN(svo2) && (postSat - svo2) > 0) {
              recirc = ((preSat - svo2) / (postSat - svo2)) * 100;
         }
         oxyRecirculationResultEl.textContent = `${recirc !== null ? Math.max(0, recirc).toFixed(1) : '-'} %`;
 
-        // Oxygenator Health
         const oxygenTransfer = (flow && hb && !isNaN(postSat) && !isNaN(preSat)) ? (flow * 1.34 * hb * ((postSat - preSat) / 100)) * 10 : null;
         oxyTransferResultEl.textContent = `${oxygenTransfer ? oxygenTransfer.toFixed(0) : '-'}`;
         
@@ -1004,9 +926,6 @@ document.addEventListener('DOMContentLoaded', () => {
         oxyHealthResultEl.innerHTML = healthHTML;
     }
     
-    // --- Event Listeners & Initial Calls ---
-
-    // Flow
     addSliderListener(flowWeightSlider, flowWeightValue, 'kg', 0, updateFlowCalculation);
     addSliderListener(flowHeightSlider, flowHeightValue, 'cm', 0, updateFlowCalculation);
     addSliderListener(flowRateSlider, flowRateValue, 'ml/kg/min', 0, updateFlowCalculation);
@@ -1014,11 +933,9 @@ document.addEventListener('DOMContentLoaded', () => {
     flowVVModeBtn.addEventListener('click', () => setFlowMode('VV'));
     flowVAModeBtn.addEventListener('click', () => setFlowMode('VA'));
 
-    // Cannula
     addSliderListener(cannulaWeightSlider, cannulaWeightValue, 'kg', 0, updateCannulaSizing);
     [cannulaFlowInput, drainageSelect, returnSelect].forEach(el => el.addEventListener('input', updateCannulaSizing));
     
-    // Heparin
     addSliderListener(heparinWeightSlider, heparinWeightValue, 'kg', 0, updateHeparinCalculation);
     heparinLabValueSlider.addEventListener('input', e => { 
         const decimals = heparinProtocol === 'Xa' ? 2 : 0;
@@ -1030,7 +947,6 @@ document.addEventListener('DOMContentLoaded', () => {
     heparinACTBtn.addEventListener('click', () => setHeparinProtocol('ACT'));
     heparinXaBtn.addEventListener('click', () => setHeparinProtocol('Xa'));
 
-    // Oxygenation
     const oxyInputs = [ oxyPao2Input, oxyPvo2Input, oxyModelSelect, oxyTmpInput, oxyPrePao2Input, oxyPostPao2Input ];
     oxyInputs.forEach(el => el.addEventListener('input', updateOxygenationCalculations));
     addSliderListener(oxyFlowSlider, oxyFlowValue, 'L/min', 1, updateOxygenationCalculations);
@@ -1042,32 +958,33 @@ document.addEventListener('DOMContentLoaded', () => {
     oxySvo2Slider.addEventListener('input', () => syncSvo2Sliders(oxySvo2Slider));
     oxyRecircSvo2Slider.addEventListener('input', () => syncSvo2Sliders(oxyRecircSvo2Slider));
 
-    // Syncing
     function syncToCannulaTab() {
         cannulaWeightSlider.value = flowWeightSlider.value;
-        // Trigger a change event to update the value display and recalculate
         cannulaWeightSlider.dispatchEvent(new Event('input', { bubbles: true }));
+        if(calculatedFlowL) cannulaFlowInput.value = calculatedFlowL.toFixed(2);
+        updateCannulaSizing();
     }
     
     function syncToOxygenationTab() {
         if (calculatedFlowL) {
             oxyFlowSlider.value = calculatedFlowL;
+            oxyFlowSlider.dispatchEvent(new Event('input', { bubbles: true }));
         }
-        syncSvo2Sliders(oxySvo2Slider); // This will also trigger updateOxygenationCalculations
+        updateOxygenationCalculations();
     }
     
-    // Initial Setup Calls
     populateCannulaSelects();
     populateOxygenatorSelect();
     setFlowMode('VV');
     setHeparinProtocol('aPTT');
     updateCannulaSizing();
-    syncSvo2Sliders(oxySvo2Slider); // Initial call to sync and calculate
+    updateOxygenationCalculations();
 });
 
 // --- HELPER FUNCTIONS --- //
 function generateSVGGraph(container, data, activeKey, opFlow, minFlow, maxFlow, targetFlow, options) {
-    const { title, xMax, yMax, yMin, limit, yAxisLabel } = options;
+    const { title, yMax, yMin, limit, yAxisLabel } = options;
+    const xMax = 8;
     const width = 500, height = 280, margin = { top: 40, right: 40, bottom: 40, left: 50 };
     
     const xScale = val => margin.left + (val / xMax * (width - margin.left - margin.right));
@@ -1081,7 +998,8 @@ function generateSVGGraph(container, data, activeKey, opFlow, minFlow, maxFlow, 
                 pathData += `${xScale(i)},${yScale(pressure)} L`;
             }
         }
-        return `<path d="${pathData.slice(0, -2)}" class="curve ${cannula.key === activeKey ? 'curve-active' : 'curve-inactive'}" />`;
+        const curveClass = cannula.key === activeKey ? 'curve-active' : 'curve-inactive';
+        return `<path d="${pathData.slice(0, -2)}" class="curve ${curveClass}" />`;
     }).join('');
 
     let opPointCircle = '';
@@ -1093,40 +1011,27 @@ function generateSVGGraph(container, data, activeKey, opFlow, minFlow, maxFlow, 
         }
     }
     
-    let targetFlowColumn = '';
-    if (minFlow > 0 && maxFlow > minFlow) {
-        const startX = xScale(minFlow);
-        const endX = xScale(maxFlow);
-        targetFlowColumn = `
-            <rect x="${startX}" y="${margin.top}" width="${endX - startX}" height="${height - margin.top - margin.bottom}" class="target-flow-range" />
-            <text x="${startX}" y="${margin.top - 5}" class="axis-label" text-anchor="start">${minFlow.toFixed(1)}</text>
-            <text x="${endX}" y="${margin.top - 5}" class="axis-label" text-anchor="end">${maxFlow.toFixed(1)}</text>
-        `;
-    }
+    const targetFlowColumn = `
+        <rect x="${xScale(minFlow)}" y="${margin.top}" width="${xScale(maxFlow) - xScale(minFlow)}" height="${height - margin.top - margin.bottom}" class="target-flow-range" />
+        <text x="${xScale(minFlow)}" y="${margin.top - 5}" class="axis-label" text-anchor="start">${minFlow.toFixed(1)}</text>
+        <text x="${xScale(maxFlow)}" y="${margin.top - 5}" class="axis-label" text-anchor="end">${maxFlow.toFixed(1)}</text>
+    `;
     
-    let targetFlowLine = '';
-    if (targetFlow > 0) {
-        const flowX = xScale(targetFlow);
-        targetFlowLine = `<line x1="${flowX}" y1="${margin.top}" x2="${flowX}" y2="${height - margin.bottom}" class="target-flow-line" />`;
-    }
-
+    const targetFlowLine = `<line x1="${xScale(targetFlow)}" y1="${margin.top}" x2="${xScale(targetFlow)}" y2="${height - margin.bottom}" class="target-flow-line" />`;
     const xGridLines = Array.from({ length: Math.floor(xMax / 2) + 1 }, (_, i) => `<line x1="${xScale(i * 2)}" y1="${margin.top}" x2="${xScale(i * 2)}" y2="${height - margin.bottom}" class="grid-line" />`).join('');
     const numYGrid = 5;
     const yGridLines = Array.from({ length: numYGrid + 1 }, (_, i) => {
         const yVal = yMin + i * ((yMax - yMin) / numYGrid);
         return `<line x1="${margin.left}" y1="${yScale(yVal)}" x2="${width - margin.right}" y2="${yScale(yVal)}" class="grid-line" />`
     }).join('');
-    
     const xLabels = Array.from({ length: Math.floor(xMax / 2) + 1 }, (_, i) => `<text x="${xScale(i * 2)}" y="${height - margin.bottom + 15}" text-anchor="middle" class="axis-label">${i * 2}</text>`).join('');
     const yLabels = Array.from({ length: numYGrid + 1 }, (_, i) => {
         const yVal = yMin + i * ((yMax - yMin) / numYGrid);
         return `<text x="${margin.left - 8}" y="${yScale(yVal) + 4}" text-anchor="end" class="axis-label">${yVal.toFixed(0)}</text>`
     }).join('');
-
     const axisTitles = `<text x="${width / 2}" y="${height - 5}" text-anchor="middle" class="axis-label font-semibold">Flow (L/min)</text>
                        <text x="${-(height / 2)}" y="15" transform="rotate(-90)" text-anchor="middle" class="axis-label font-semibold">${yAxisLabel}</text>
                        <text x="${width / 2}" y="${margin.top - 15}" text-anchor="middle" class="text-lg font-semibold text-gray-800">${title}</text>`;
-
     const limitLine = `<line x1="${margin.left}" y1="${yScale(limit)}" x2="${width - margin.right}" y2="${yScale(limit)}" class="limit-line" />
                        <text x="${width - margin.right + 5}" y="${yScale(limit) + 4}" class="text-xs fill-red-500">${limit} mmHg</text>`;
 
@@ -1149,3 +1054,4 @@ function generateSVGGraph(container, data, activeKey, opFlow, minFlow, maxFlow, 
 
 </body>
 </html>
+
