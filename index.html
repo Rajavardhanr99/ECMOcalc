@@ -1,1057 +1,1143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced ECMO Calculator Suite</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'accent': '#0071e3', // Original blue
-                        'success': '#10b981', // Emerald 500
-                        'warning': '#f59e0b', // Amber 500
-                        'light-blue': '#f0f9ff', // Sky 50
-                    },
-                }
-            }
-        }
-    </script>
-    <style>
-        :root {
-            --bg-color: #f8f8fA;
-            --text-color: #1d1d1f;
-            --subtle-text-color: #6e6e73;
-            --accent-color: #0071e3;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --border-color: #d2d2d7;
-            --card-bg: #ffffff;
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#fbfbfd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ECMO Suite">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%230071e3%27/%3E%3Cpath d=%27M14 34h9l5-12 8 22 5-10h9%27 fill=%27none%27 stroke=%27white%27 stroke-width=%275%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<title>ECMO Suite — Bedside Calculators</title>
+<meta name="description" content="ECMO teaching calculators: blood flow targets, cannula pressure–flow, heparin titration, gas exchange, recirculation and sweep adjustment.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbfbfd; --card:#ffffff; --ink:#1d1d1f; --ink-2:#424245; --sub:#6e6e73; --faint:#86868b;
+  --hair:rgba(0,0,0,.09); --hair-2:rgba(0,0,0,.05); --fill:#f5f5f7;
+  --accent:#0071e3; --accent-soft:rgba(0,113,227,.08);
+  --ok:#1d7d3a; --ok-soft:#eaf6ed; --warn:#a35200; --warn-soft:#fdf3e6; --bad:#c8102e; --bad-soft:#fdecee;
+  --radius:18px; --radius-s:12px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:40px 20px 56px}
+header.top{text-align:center;margin-bottom:28px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:600}
+h1{font-size:40px;line-height:1.1;letter-spacing:-.02em;margin:6px 0 6px;font-weight:700}
+.lede{color:var(--sub);margin:0;font-size:17px}
+h2{font-size:20px;letter-spacing:-.01em;margin:0 0 4px;font-weight:600}
+h3{font-size:15px;margin:0 0 10px;font-weight:600}
+h4{font-size:13px;margin:16px 0 6px;font-weight:600;color:var(--ink-2)}
+p{margin:0 0 8px}
+.muted{color:var(--sub)} .small{font-size:12.5px} .tiny{font-size:11.5px;color:var(--faint)}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+/* patient bar */
+.patient{display:grid;grid-template-columns:1fr 1fr auto;gap:28px;align-items:end;background:var(--card);border:1px solid var(--hair);border-radius:var(--radius);padding:18px 24px;margin-bottom:20px}
+.bsa{text-align:right;min-width:150px}
+.bsa .big{font-size:26px;font-weight:600;letter-spacing:-.01em}
+@media(max-width:720px){.patient{grid-template-columns:1fr;gap:16px}.bsa{text-align:left}}
 
-        .main-container {
-            transition: opacity 0.5s ease-in-out;
-        }
+/* tabs */
+.tabs{display:flex;justify-content:center;margin:0 0 22px}
+.seg{display:inline-flex;background:#ececf0;border-radius:999px;padding:3px;gap:2px;flex-wrap:wrap;justify-content:center}
+.seg button{appearance:none;border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink-2);padding:7px 16px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s,box-shadow .2s}
+.seg button:hover{color:var(--ink)}
+.seg button.active{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06)}
+.seg.small button{font-size:13px;padding:5px 12px}
+.seg.full{display:flex;width:100%}.seg.full button{flex:1}
+@media(max-width:480px){.tabs .seg{flex-wrap:nowrap}.tabs .seg button{font-size:12.5px;padding:6px 9px}h1{font-size:32px}.hero{font-size:36px}}
 
-        .tab-button {
-            position: relative;
-            transition: all 0.3s ease;
-            color: var(--subtle-text-color);
-            padding: 0.5rem 1rem;
-            margin: 0 0.25rem;
-            cursor: pointer;
-            white-space: nowrap;
-            border-radius: 9999px;
-            border: 1px solid transparent;
-        }
-        @media (min-width: 640px) {
-            .tab-button { margin: 0 0.5rem; padding: 0.5rem 1.25rem; }
-        }
-        
-        /* Active Tab Style */
-        .tab-button.active {
-            font-weight: 600;
-            background-color: #d1fae5;
-            color: #1e3a8a;
-            border-color: #a7f3d0;
-        }
-        
-        .tab-content {
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-        }
-        .tab-content.hidden {
-            display: none;
-        }
+/* layout */
+.panel{display:none}.panel.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.grid{display:grid;gap:20px}
+.g-main{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}
+.g-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:960px){.g-main,.g-3{grid-template-columns:1fr}}
+@media(max-width:620px){.g-2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--hair);border-radius:var(--radius);padding:24px}
+.card.quiet{background:#fafafc}
+.stack>*+*{margin-top:18px}
 
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 1.25rem;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-        
-        .formula-card {
-            background-color: #f9fafb; /* gray-50 */
-            border: 1px solid #e5e7eb; /* gray-200 */
-        }
-        .formula {
-            background-color: #eef2ff; /* indigo-50 */
-            color: #312e81; /* indigo-900 */
-            padding: 0.25rem 0.6rem;
-            border-radius: 0.375rem;
-            font-family: 'Georgia', 'Times New Roman', Times, serif;
-            font-size: 1.05em;
-            display: inline-block;
-            border: 1px solid #e0e7ff; /* indigo-100 */
-        }
+/* fields */
+.field label,.lbl{font-size:13px;color:var(--ink-2);font-weight:500}
+.field-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.val{display:inline-flex;align-items:baseline;gap:4px;color:var(--sub);font-size:13px}
+.num{width:76px;text-align:right;font:inherit;font-size:15px;font-weight:600;color:var(--ink);border:1px solid transparent;border-radius:8px;background:transparent;padding:2px 6px;-moz-appearance:textfield}
+.num:hover{border-color:var(--hair)} .num:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+.num::-webkit-inner-spin-button,.num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.input{width:100%;font:inherit;font-size:15px;color:var(--ink);background:var(--fill);border:1px solid var(--hair-2);border-radius:10px;padding:9px 12px;transition:border-color .2s,box-shadow .2s;appearance:none}
+.input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+select.input{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236e6e73' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");background-position:right .55rem center;background-repeat:no-repeat;background-size:1.3em;padding-right:2.2rem}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.input-unit{display:flex;gap:8px}.input-unit .input:first-child{flex:1}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.check input{accent-color:var(--accent);width:16px;height:16px}
 
-        .input-field {
-            background-color: #f5f5f7;
-            border: 1px solid #e5e5e7;
-            border-radius: 0.75rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
-        .input-field:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
-            outline: none;
-        }
-        select.input-field {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.5rem center;
-            background-repeat: no-repeat;
-            background-size: 1.5em 1.5em;
-            padding-right: 2.5rem;
-        }
-        
-        .mode-button {
-            transition: all 0.3s ease;
-            border: 1px solid var(--border-color);
-        }
-        .mode-button.active {
-            background-color: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
-        }
-        
-        .result-display {
-            background: linear-gradient(135deg, #f5f5f7, #e8e8ed);
-            border-radius: 1rem;
-        }
-        
-        /* Custom Slider Styles */
-        input[type="range"] {
-            -webkit-appearance: none; appearance: none;
-            width: 100%; height: 8px;
-            background: #e0f2fe; border-radius: 5px;
-            outline: none; opacity: 0.9;
-            transition: opacity .2s;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none;
-            width: 20px; height: 20px;
-            background: var(--accent-color); cursor: pointer;
-            border-radius: 50%; border: 2px solid white;
-            box-shadow: 0 0 2px rgba(0,0,0,0.2);
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 18px; height: 18px;
-            background: var(--accent-color); cursor: pointer;
-            border-radius: 50%; border: 2px solid white;
-            box-shadow: 0 0 2px rgba(0,0,0,0.2);
-        }
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:#e3e3e8;border-radius:4px;outline:none;margin:8px 0 2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.18);box-shadow:0 1px 3px rgba(0,0,0,.18);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.18);box-shadow:0 1px 3px rgba(0,0,0,.18);cursor:pointer}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px var(--accent-soft),0 1px 3px rgba(0,0,0,.18)}
 
-        .slider-container { display: flex; align-items: center; gap: 1rem; }
-        .slider-value { font-weight: 600; color: var(--accent-color); min-width: 70px; text-align: center; }
+/* results */
+.result{border-top:1px solid var(--hair);padding-top:18px;margin-top:22px}
+.hero{font-size:44px;font-weight:600;letter-spacing:-.025em;line-height:1.05}
+.hero small{font-size:18px;font-weight:500;color:var(--sub);letter-spacing:0}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:0;border:1px solid var(--hair);border-radius:var(--radius-s);overflow:hidden;margin-top:14px}
+.kv>div{padding:12px 14px;border-right:1px solid var(--hair-2);border-bottom:1px solid var(--hair-2)}
+.kv .k{font-size:12px;color:var(--sub)} .kv .v{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.kv .v small{font-size:12px;font-weight:500;color:var(--sub)}
+.stat{padding:12px 0;border-bottom:1px solid var(--hair-2);display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.stat:last-child{border-bottom:0}
+.stat .k{font-size:13px;color:var(--ink-2)} .stat .v{font-size:20px;font-weight:600;letter-spacing:-.01em;text-align:right}
+.stat .v small{font-size:12px;font-weight:500;color:var(--sub)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--fill);color:var(--ink-2)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.bad{background:var(--bad-soft);color:var(--bad)}
+.note{font-size:12.5px;color:var(--sub);border-left:2px solid var(--hair);padding:2px 0 2px 10px;margin-top:12px}
+.note.warn{border-left-color:#e8b27a}
+.action{font-size:19px;font-weight:600;letter-spacing:-.01em;line-height:1.35}
 
-        /* Cannula Graph Styles */
-        .cannula-graph svg { width: 100%; height: auto; }
-        .cannula-graph .axis-label { font-size: 10px; fill: var(--subtle-text-color); }
-        .cannula-graph .curve { fill: none; stroke-width: 2.5; transition: stroke 0.4s ease, stroke-width 0.4s ease; }
-        .cannula-graph .curve-active { stroke: var(--accent-color); stroke-width: 4; }
-        .cannula-graph .curve-inactive { stroke: #d1d5db; opacity: 0.6; } /* gray-300 */
-        .cannula-graph .axis-line { stroke: #9ca3af; stroke-width: 1.5; } /* gray-400 */
-        .cannula-graph .grid-line { stroke: #e5e7eb; stroke-dasharray: 2 4; stroke-width: 1; } /* gray-200 */
-        .cannula-graph .limit-line { stroke: #ef4444; stroke-width: 1.5; stroke-dasharray: 4 4; } /* red-500 */
-        .cannula-graph .target-flow-range { fill: var(--accent-color); opacity: 0.1; }
-        .cannula-graph .target-flow-line { stroke: #1e40af; stroke-width: 2; } /* dark blue */
-        .cannula-graph .op-point { r: 0; transition: r 0.3s ease; }
-        .cannula-graph .op-point.visible { fill: var(--accent-color); stroke: white; stroke-width: 2; r: 5; }
+/* formula */
+.formula{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--fill);border:1px solid var(--hair-2);border-radius:8px;padding:6px 10px;display:block;margin:6px 0;color:var(--ink-2);white-space:normal;overflow-wrap:anywhere}
+ul.plain{margin:6px 0 0;padding-left:18px;color:var(--ink-2);font-size:13px} ul.plain li{margin:3px 0}
 
-    </style>
+/* table */
+table.nomo{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+table.nomo th{text-align:left;font-weight:600;color:var(--sub);padding:6px 6px;border-bottom:1px solid var(--hair)}
+table.nomo td{padding:7px 6px;border-bottom:1px solid var(--hair-2);vertical-align:top}
+table.nomo tr.on td{background:var(--accent-soft);color:var(--ink);font-weight:600}
+table.nomo td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* graphs */
+.graph svg{width:100%;height:auto;display:block}
+.graph .ax{font-size:10px;fill:var(--faint);font-family:inherit}
+.graph .ttl{font-size:12px;fill:var(--ink-2);font-weight:600}
+.graph .grid-l{stroke:#ececf0;stroke-width:1}
+.graph .axis{stroke:#c7c7cc;stroke-width:1}
+.graph .curve{fill:none;stroke:#d8d8de;stroke-width:1.5}
+.graph .curve.on{stroke:var(--accent);stroke-width:3}
+.graph .band{fill:var(--accent);opacity:.06}
+.graph .tgt{stroke:var(--accent);stroke-width:1;stroke-dasharray:3 3;opacity:.8}
+.graph .lim{stroke:var(--bad);stroke-width:1;stroke-dasharray:4 4}
+.graph .limt{font-size:10px;fill:var(--bad)}
+.graph .pt{fill:var(--accent);stroke:#fff;stroke-width:2}
+.graph .lab{font-size:9.5px;fill:var(--faint)}
+.graph .lab.on{fill:var(--accent);font-weight:700}
+.graph+.graph{margin-top:10px;border-top:1px solid var(--hair-2);padding-top:10px}
+
+footer{margin-top:40px;border-top:1px solid var(--hair);padding-top:20px;color:var(--sub);font-size:12.5px}
+footer .refs{columns:2;column-gap:32px;margin:10px 0 0;padding-left:18px}
+footer .refs li{margin:0 0 6px;break-inside:avoid}
+@media(max-width:720px){footer .refs{columns:1}}
+footer a{color:var(--accent);text-decoration:none} footer a:hover{text-decoration:underline}
+.disclaimer{background:#fafafc;border:1px solid var(--hair);border-radius:var(--radius-s);padding:12px 14px;margin-top:14px}
+.hidden{display:none!important}
+
+/* chips, misc */
+.stat .v.small{font-size:14px;line-height:1.4}
+.card a{color:var(--accent);text-decoration:none}.card a:hover{text-decoration:underline}
+.chip{appearance:none;border:1px solid var(--hair);background:#fff;color:var(--accent);font:inherit;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;cursor:pointer;margin-top:8px}
+.chip:active{background:var(--accent-soft)}
+.graph .ax.sub{fill:var(--faint);font-size:10px}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
+.seg .ico{display:none}
+button,select,input{-webkit-tap-highlight-color:transparent}
+.input,.num{font-size:16px}           /* ≥16px stops iOS zoom-on-focus */
+@media (pointer:coarse){
+  input[type=range]{height:6px;margin:12px 0 6px}
+  input[type=range]::-webkit-slider-thumb{width:28px;height:28px}
+  input[type=range]::-moz-range-thumb{width:28px;height:28px}
+  .num{width:84px;padding:4px 6px}
+}
+/* phone layout */
+@media (max-width:720px){
+  .wrap{padding:calc(18px + env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom))}
+  header.top{margin-bottom:16px;text-align:left}
+  h1{font-size:30px} .lede{font-size:15px}
+  .card{padding:18px;border-radius:16px}
+  .patient{grid-template-columns:1fr 1fr;gap:14px 18px;padding:14px 16px;border-radius:16px}
+  .patient .bsa{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--hair-2);padding-top:10px;text-align:left}
+  .patient .bsa .big{font-size:20px}
+  .field-head{margin-bottom:2px}
+  .hero{font-size:38px}
+  .kv{grid-template-columns:1fr 1fr}
+  .stat .v{font-size:18px}
+  .grid{gap:14px}
+  /* bottom tab bar */
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;margin:0;background:rgba(251,251,253,.86);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid rgba(0,0,0,.16);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  .tabs .seg{display:grid;grid-template-columns:repeat(4,1fr);width:100%;background:transparent;padding:0;border-radius:0}
+  .tabs .seg button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px 2px;border-radius:10px;font-size:10.5px;font-weight:500;color:var(--faint);box-shadow:none!important;background:transparent!important}
+  .tabs .seg button.active{color:var(--accent);font-weight:600}
+  .tabs .seg .ico{display:block;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  footer .refs{columns:1}
+}
+
+/* ================= COLOUR LAYER ================= */
+:root{--blue:#0a84ff;--teal:#00a6b4;--purple:#8e44ec;--orange:#ff8a00;--red:#ff375f;--green:#30b158;--indigo:#5856d6;--pink:#ff2d87}
+body{background:
+  radial-gradient(900px 420px at 8% -8%, rgba(10,132,255,.10), transparent 60%),
+  radial-gradient(800px 420px at 92% -6%, rgba(255,45,135,.08), transparent 60%),
+  radial-gradient(700px 380px at 50% -12%, rgba(142,68,236,.07), transparent 60%),
+  var(--bg);background-repeat:no-repeat}
+h1{display:inline-block;background:linear-gradient(90deg,var(--blue) 0%,var(--purple) 38%,var(--pink) 68%,var(--orange) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.eyebrow{color:var(--purple)}
+/* per-calculator accent */
+.patient{--c:var(--indigo)}
+#p-flow{--c:var(--blue)} #p-cannula{--c:var(--teal)} #p-heparin{--c:var(--purple)} #p-gas{--c:var(--orange)}
+#p-gas .g-3>.card:nth-child(1){--c:var(--red)}
+#p-gas .g-3>.card:nth-child(2){--c:var(--teal)}
+#p-gas .g-3>.stack>.card:nth-child(1){--c:var(--purple)}
+#p-gas .g-3>.stack>.card:nth-child(2){--c:var(--green)}
+.panel .card,.patient{position:relative;overflow:hidden}
+.panel .card::before,.patient::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--c),color-mix(in srgb,var(--c) 35%,#fff))}
+.panel .card:not(.quiet){background:linear-gradient(180deg,color-mix(in srgb,var(--c) 5%,#fff) 0,#fff 140px)}
+.panel .card.quiet{background:color-mix(in srgb,var(--c) 4%,#fafafc)}
+.panel h2{display:flex;align-items:center;gap:9px}
+.panel h2::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 18%,transparent);flex:none}
+.panel h3,.panel h4{color:color-mix(in srgb,var(--c) 70%,#1d1d1f)}
+.num{color:color-mix(in srgb,var(--c,var(--accent)) 85%,#000)}
+.num:focus{border-color:var(--c,var(--accent));box-shadow:0 0 0 3px color-mix(in srgb,var(--c,var(--accent)) 18%,transparent)}
+.input:focus{border-color:var(--c,var(--accent));box-shadow:0 0 0 3px color-mix(in srgb,var(--c,var(--accent)) 16%,transparent)}
+.hero{color:var(--c)} .hero small{color:color-mix(in srgb,var(--c) 55%,#6e6e73)}
+.action{color:color-mix(in srgb,var(--c) 80%,#1d1d1f)}
+.kv{border-color:color-mix(in srgb,var(--c) 22%,#fff);background:#fff}
+.kv .v,.stat .v{color:#1d1d1f}
+.formula{background:color-mix(in srgb,var(--c,#888) 6%,#fff);border-color:color-mix(in srgb,var(--c,#888) 16%,#fff);color:color-mix(in srgb,var(--c,#555) 55%,#1d1d1f)}
+.note{border-left-color:color-mix(in srgb,var(--c,#999) 45%,#fff)}
+.chip{color:var(--c);border-color:color-mix(in srgb,var(--c) 30%,#fff)}
+.check input{accent-color:var(--c)}
+.seg.small button.active,.seg.full button.active{color:var(--c)}
+table.nomo tr.on td{background:color-mix(in srgb,var(--c) 12%,#fff)}
+.bsa .big{color:var(--indigo)}
+/* filled slider tracks */
+input[type=range]{background:linear-gradient(90deg,var(--c,var(--accent)) 0 var(--fill,50%),#e3e3e8 var(--fill,50%) 100%)}
+input[type=range]::-webkit-slider-thumb{border:.5px solid color-mix(in srgb,var(--c,#000) 35%,transparent)}
+/* tabs: each tab carries its own colour */
+.tabs button[data-tab=flow]{--c:var(--blue)} .tabs button[data-tab=cannula]{--c:var(--teal)}
+.tabs button[data-tab=heparin]{--c:var(--purple)} .tabs button[data-tab=gas]{--c:var(--orange)}
+.tabs .seg button.active{color:var(--c)}
+@media (min-width:721px){.tabs .seg{background:rgba(236,236,240,.8)}}
+/* graphs: venous blue / arterial red */
+.graph svg.drn{--g:var(--blue)} .graph svg.ret{--g:var(--red)}
+.graph .curve.on{stroke:var(--g)} .graph .lab.on{fill:var(--g)} .graph .pt{fill:var(--g)}
+.graph .band{fill:var(--g);opacity:.07} .graph .tgt{stroke:var(--g)}
+.graph .curve{stroke:color-mix(in srgb,var(--g) 22%,#dcdce2)}
+.graph .ttl{fill:var(--g)}
+/* pills a touch richer */
+.pill.ok{background:#e3f6e8;color:#1b7a36} .pill.warn{background:#fff1dc;color:#a75400} .pill.bad{background:#ffe3e8;color:#c4103a}
+footer a{color:var(--purple)}
+@media (max-width:720px){ .tabs .seg button.active .ico{filter:drop-shadow(0 2px 6px color-mix(in srgb,var(--c) 40%,transparent))} }
+
+/* v4 additions */
+.pt-opts{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr 1fr;gap:12px 16px;align-items:end;border-top:1px solid var(--hair-2);padding-top:14px}
+.pt-opts .seg{margin-top:4px}
+.pt-info{grid-column:1/-1;font-size:12.5px;color:var(--sub)} .pt-info b{color:var(--ink);font-weight:600}
+.g-circ{grid-template-columns:minmax(0,2fr) minmax(0,3fr)}
+@media(max-width:960px){.g-circ{grid-template-columns:1fr}}
+#p-vv{--c:var(--pink)} .tabs button[data-tab=vv]{--c:var(--pink)}
+.graph svg.vv,.graph svg.circ{--g:var(--c)}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pill.selftest{border:0;cursor:pointer;font:inherit;font-size:12px;font-weight:600}
+.changelog{margin-top:12px;font-size:12.5px} .changelog summary{cursor:pointer;color:var(--purple);font-weight:600}
+#stPanel{margin-top:10px} #stPanel table td:nth-child(2),#stPanel table td:nth-child(3){font-variant-numeric:tabular-nums}
+@media(max-width:720px){
+  .pt-opts{grid-template-columns:1fr 1fr}
+  .pt-opts>div:first-child{grid-column:1/-1}
+  .tabs .seg{grid-template-columns:repeat(5,1fr)!important}
+  .tabs .seg button{font-size:10px}
+}
+@media print{.tabs,.patient input[type=range]{display:none}.panel{display:block!important}.card{break-inside:avoid}}
+</style>
 </head>
-<body class="p-4 md:p-8">
+<body>
+<div class="wrap">
 
-    <div class="main-container mx-auto max-w-7xl opacity-0">
-        
-        <header class="text-center mb-10 md:mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-green-500 text-transparent bg-clip-text">ECMO Suite</h1>
-            <p class="text-gray-600 mt-3 text-base md:text-lg">Precision Calculators for Critical Care.</p>
-        </header>
+<header class="top">
+  <div class="eyebrow">Critical Care Teaching Tools</div>
+  <h1>ECMO Suite</h1>
+  <p class="lede">Bedside calculators for flow, cannulae, anticoagulation and gas exchange.</p>
+</header>
 
-        <div class="mb-8 border-b border-gray-200 flex justify-center flex-wrap">
-            <nav class="flex items-center p-1" aria-label="Tabs">
-                <button class="tab-button active" data-tab="flow">ECMO Flow</button>
-                <button class="tab-button" data-tab="cannula">Cannula Sizing</button>
-                <button class="tab-button" data-tab="heparin">Heparin Protocol</button>
-                <button class="tab-button" data-tab="oxygenation">Oxygenation</button>
-            </nav>
-        </div>
+<!-- Shared patient -->
+<section class="patient" aria-label="Patient">
+  <div class="field">
+    <div class="field-head"><label for="wt">Weight</label><span class="val"><input class="num" data-for="wt" type="number" inputmode="decimal" aria-label="Weight in kg"> kg</span></div>
+    <input type="range" id="wt" min="1" max="200" step="1" value="70">
+  </div>
+  <div class="field">
+    <div class="field-head"><label for="ht">Height</label><span class="val"><input class="num" data-for="ht" type="number" inputmode="decimal" aria-label="Height in cm"> cm</span></div>
+    <input type="range" id="ht" min="40" max="220" step="1" value="175">
+  </div>
+  <div class="bsa">
+    <div class="tiny" id="bsaLbl">Body surface area (Du Bois)</div>
+    <div class="big" id="bsaOut">—</div>
+  </div>
+  <div class="pt-opts">
+    <div><span class="lbl">Sex</span><div class="seg small" id="sexSeg"><button class="active" data-sex="M" type="button">Male</button><button data-sex="F" type="button">Female</button></div></div>
+    <div><label class="lbl" for="bsaSel">BSA formula</label><select class="input" id="bsaSel"><option value="dubois">Du Bois</option><option value="mosteller">Mosteller</option></select></div>
+    <div><label class="lbl" for="dwSel">Dosing weight</label><select class="input" id="dwSel"><option value="actual">Actual</option><option value="ideal">Ideal (Devine)</option><option value="adjusted">Adjusted</option></select></div>
+    <div class="pt-info" id="ptInfo"></div>
+  </div>
+</section>
 
-        <div class="relative">
-            <div id="flow-content" class="tab-content">
-                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                    <div class="lg:col-span-3">
-                         <div class="card p-6 md:p-8 h-full flex flex-col">
-                             <h2 class="text-2xl font-semibold mb-6 text-gray-800">Calculate Required Blood Flow</h2>
-                             <div class="grid grid-cols-1 gap-y-6 flex-grow">
-                                <div>
-                                   <label class="block text-sm font-medium text-gray-600 mb-2">ECMO Mode</label>
-                                   <div class="flex rounded-lg border border-gray-200 p-1">
-                                        <button id="flow-vv-mode-btn" class="mode-button active flex-1 py-2 px-4 rounded-md">VV ECMO</button>
-                                        <button id="flow-va-mode-btn" class="mode-button flex-1 py-2 px-4 rounded-md">VA ECMO</button>
-                                   </div>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 items-end">
-                                     <div class="space-y-2">
-                                        <label for="flow-weight-slider" class="block text-sm font-medium text-gray-600">Patient Weight</label>
-                                        <div class="slider-container">
-                                            <input type="range" id="flow-weight-slider" min="1" max="150" value="70">
-                                            <span id="flow-weight-value" class="slider-value">70 kg</span>
-                                        </div>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label for="flow-height-slider" class="block text-sm font-medium text-gray-600">Patient Height</label>
-                                        <div class="slider-container">
-                                            <input type="range" id="flow-height-slider" min="50" max="220" value="175">
-                                            <span id="flow-height-value" class="slider-value">175 cm</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div id="flow-vv-inputs">
-                                    <div class="space-y-2">
-                                        <label for="flow-rate" class="block text-sm font-medium text-gray-600">Target Flow Rate</label>
-                                         <div class="slider-container">
-                                             <input type="range" id="flow-rate" min="50" max="100" value="60">
-                                             <span id="flow-rate-value" class="slider-value">60 ml/kg/min</span>
-                                         </div>
-                                    </div>
-                                </div>
-                                <div id="flow-va-inputs" class="hidden">
-                                    <div class="space-y-2">
-                                        <label for="flow-current-slider" class="block text-sm font-medium text-gray-600">Current ECMO Flow</label>
-                                        <div class="slider-container">
-                                            <input type="range" id="flow-current-slider" min="1" max="8" value="4" step="0.1">
-                                            <span id="flow-current-value" class="slider-value">4.0 L/min</span>
-                                        </div>
-                                    </div>
-                                </div>
-                             </div>
-                             <div id="flow-result-container" class="mt-8">
-                                  <div class="result-display p-6 text-center space-y-2">
-                                     <h3 class="font-semibold text-lg text-gray-800 mb-1">Calculated ECMO Target Flow</h3>
-                                     <p id="flow-result" class="text-3xl sm:text-4xl font-bold text-accent"></p>
-                                     <div id="va-result-details" class="text-sm text-gray-600"></div>
-                                     <div id="va-support-percent" class="text-lg font-semibold text-gray-800 mt-2"></div>
-                                 </div>
-                             </div>
-                        </div>
-                    </div>
-                    <div class="lg:col-span-2">
-                         <div class="card formula-card p-6 h-full">
-                            <h3 class="text-xl font-semibold mb-4 text-gray-800">Formulas Used</h3>
-                            <div class="space-y-6 text-sm text-gray-700">
-                                <div id="flow-vv-formulas">
-                                    <h4 class="font-semibold text-base text-gray-800 mb-2">VV ECMO Flow</h4>
-                                    <p><span class="formula">Flow = (Weight &times; Rate) / 1000</span></p>
-                                    <ul class="list-disc list-inside mt-2 space-y-1">
-                                        <li><code>Weight</code> in kg</li>
-                                        <li><code>Rate</code> in ml/kg/min</li>
-                                        <li>Result is in <strong>L/min</strong></li>
-                                    </ul>
-                                </div>
-                                <div id="flow-va-formulas" class="hidden">
-                                     <h4 class="font-semibold text-base text-gray-800 mb-2">VA ECMO Flow (Du Bois)</h4>
-                                     <p><span class="formula">BSA = 0.007184 &times; H^0.725 &times; W^0.425</span></p>
-                                     <p class="mt-2"><span class="formula">Est. CO = BSA &times; CI</span></p>
-                                     <p class="mt-2"><span class="formula">Target Flow = Est. CO &times; 80%</span></p>
-                                     <ul class="list-disc list-inside mt-2 space-y-1">
-                                         <li><code>BSA</code>: Body Surface Area (m²)</li>
-                                         <li><code>H</code>: Height (cm), <code>W</code>: Weight (kg)</li>
-                                         <li><code>CI</code>: Cardiac Index (assumed 3.0 L/min/m²)</li>
-                                     </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div id="tabsAnchor"></div>
+<nav class="tabs" aria-label="Calculators"><div class="seg" role="tablist">
+  <button role="tab" class="active" data-tab="flow"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg><span>Blood Flow</span></button>
+  <button role="tab" data-tab="cannula"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 20 4"/><path d="M14 4h6v6"/><path d="M4 14v6h6"/></svg><span>Cannulae</span></button>
+  <button role="tab" data-tab="heparin"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg><span>Heparin</span></button>
+  <button role="tab" data-tab="gas"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="14" r="4"/><circle cx="16" cy="9" r="5"/></svg><span>Gas Exchange</span></button>
+  <button role="tab" data-tab="vv"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v7"/><path d="M12 11c-2 0-3 1-4 3-1.5 3-2 6 0 6 2.5 0 4-3 4-6"/><path d="M12 11c2 0 3 1 4 3 1.5 3 2 6 0 6-2.5 0-4-3-4-6"/></svg><span>VV Model</span></button>
+</div></nav>
 
-            <div id="cannula-content" class="tab-content hidden"></div>
-            <div id="heparin-content" class="tab-content hidden"></div>
-            <div id="oxygenation-content" class="tab-content hidden"></div>
-        </div>
-        
-        <footer class="text-center mt-12 text-sm text-gray-500">
-            <p>Developed by Dr. Rajavardhan Rangappa</p>
-            <p class="text-xs text-gray-400 mt-2 max-w-2xl mx-auto"><strong>Disclaimer:</strong> This tool is for educational purposes only and should not be used for clinical decision-making without verification by qualified healthcare professionals.</p>
-        </footer>
+<!-- ================= FLOW ================= -->
+<section class="panel active" id="p-flow">
+ <div class="grid g-main">
+  <div class="card">
+    <h2>Target blood flow</h2>
+    <p class="muted small">Initial flow target by configuration. Titrate thereafter to oxygenation, perfusion and haemodynamics.</p>
+    <div class="seg full small" style="margin:14px 0 20px" id="modeSeg">
+      <button class="active" data-mode="VV">VV ECMO</button><button data-mode="VA">VA ECMO</button>
     </div>
+
+    <div id="vvIn" class="stack">
+      <div class="field">
+        <div class="field-head"><label for="vvRate">Weight-indexed flow</label><span class="val"><input class="num" data-for="vvRate" type="number"> mL/kg/min</span></div>
+        <input type="range" id="vvRate" min="40" max="150" step="1" value="60">
+        <div class="tiny">Typical: adults 60–80 · children ≈ 80 · neonates 100–150 mL/kg/min</div>
+      </div>
+    </div>
+
+    <div id="vaIn" class="stack hidden">
+      <div class="field">
+        <div class="field-head"><label for="ci">Predicted resting cardiac index</label><span class="val"><input class="num" data-for="ci" data-dec="1" type="number" step="0.1"> L/min/m²</span></div>
+        <input type="range" id="ci" min="2.0" max="4.0" step="0.1" value="3.0" data-dec="1">
+      </div>
+      <div class="field">
+        <div class="field-head"><label for="supp">Target support (fraction of predicted CO)</label><span class="val"><input class="num" data-for="supp" type="number"> %</span></div>
+        <input type="range" id="supp" min="40" max="100" step="5" value="80">
+        <div class="tiny">VA ECMO typically provides 60–80 % of predicted resting cardiac output.</div>
+      </div>
+      <div class="field">
+        <div class="field-head"><label for="vaCur">Current ECMO flow</label><span class="val"><input class="num" data-for="vaCur" data-dec="1" type="number" step="0.1"> L/min</span></div>
+        <input type="range" id="vaCur" min="0.5" max="8" step="0.1" value="4.0" data-dec="1">
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="tiny">Target ECMO blood flow</div>
+      <div class="hero" id="flowOut">—</div>
+      <div class="kv" id="flowKV"></div>
+      <div class="note" id="flowNote"></div>
+    </div>
+  </div>
+
+  <div class="card quiet">
+    <h3>Method</h3>
+    <div id="vvF">
+      <span class="formula">Flow (L/min) = Weight × Rate ÷ 1000</span>
+      <ul class="plain"><li>Weight = the dosing weight chosen in the patient bar (kg); rate in mL/kg/min</li><li>In obesity many centres index to ideal or adjusted body weight — flow is driven by cardiac output and VO₂, not fat mass.</li></ul>
+    </div>
+    <div id="vaF" class="hidden">
+      <span class="formula" id="bsaF">BSA = 0.007184 × H^0.725 × W^0.425</span>
+      <span class="formula">Predicted CO = BSA × CI</span>
+      <span class="formula">Target flow = Predicted CO × support %</span>
+      <span class="formula">Support % = Current flow ÷ Predicted CO</span>
+      <ul class="plain"><li>Default 3.0 L/min/m² × 80 % ≈ 2.4 L/min/m² — the usual initial VA target.</li><li>“Support %” is relative to <em>predicted resting</em> output; actual native output is unknown and varies.</li></ul>
+    </div>
+    <h4>Always shown</h4>
+    <span class="formula">Flow index = Flow ÷ BSA</span>
+    <p class="small muted" style="margin-top:10px">Flow target feeds the Cannula and Gas Exchange tabs.</p>
+  </div>
+ </div>
+</section>
+
+<!-- ================= CANNULA ================= -->
+<section class="panel" id="p-cannula">
+ <div class="grid g-main">
+  <div class="card">
+    <h2>Pressure–flow performance</h2>
+    <p class="muted small">Manufacturer pressure-drop curves (water, room temperature) for the selected cannula family. Shaded band = 50–80 mL/kg/min for this patient; dashed line = target from the Blood Flow tab.</p>
+    <div class="graph" id="gDrain"></div>
+    <div class="graph" id="gReturn"></div>
+    <p class="tiny" style="margin-top:8px">Curves are shown only over the range published by the manufacturer; nothing is extrapolated.</p>
+  </div>
+  <div class="stack">
+    <div class="card">
+      <div class="field">
+        <div class="field-head"><label for="opFlow">Operating flow</label><span class="val"><input class="num" data-for="opFlow" data-dec="1" type="number" step="0.1"> L/min</span></div>
+        <input type="range" id="opFlow" min="0.5" max="7" step="0.1" value="4.2" data-dec="1">
+        <button class="chip" id="useTarget" type="button">Use target flow</button>
+      </div>
+      <div class="stack" style="margin-top:16px">
+        <div><label class="lbl" for="drainSel">Drainage cannula</label><select class="input" id="drainSel"></select></div>
+        <div><label class="lbl" for="retSel">Return cannula</label><select class="input" id="retSel"></select></div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="stat"><span class="k">Drainage ΔP (water)</span><span class="v" id="dDP">—</span></div>
+        <div class="stat"><span class="k">Return ΔP (water)</span><span class="v" id="rDP">—</span></div>
+        <div class="stat"><span class="k">Smallest in family ≤ reference</span><span class="v small" id="smallest">—</span></div>
+      </div>
+      <div style="margin-top:12px"><label class="lbl" for="limRef">Comparison line (mmHg pressure drop)</label><input class="input" id="limRef" type="number" value="100" inputmode="numeric"></div>
+      <p class="tiny" style="margin-top:6px">A comparison point, not a safety limit. Bench studies compare cannulae at 80–100 mmHg; circuit alarms refer to whole-circuit pressures, not cannula ΔP alone.</p>
+    </div>
+    <div class="card quiet">
+      <h3>Blood is not water</h3>
+      <p class="small">Manufacturers test with water. In whole blood (Hct ≈ 27 %, 37 °C) Broman et al. found:</p>
+      <ul class="plain">
+        <li><strong>Return cannulae:</strong> flows usually 3–21 % below the charts; 20–90 % more pressure gradient for the same flow, worst in 15–17 Fr.</li>
+        <li><strong>Drainage cannulae:</strong> drainage pressure 10–350 % higher than the charts at a given flow.</li>
+        <li><strong>Dual-lumen:</strong> drainage needed 10–80 % more pressure drop; return similar to the charts.</li>
+      </ul>
+      <p class="tiny" style="margin-top:8px">Treat these values as a best case. Length, side-hole position, haematocrit, vessel size and tip position all change real-world performance.</p>
+      <h4>Data source</h4>
+      <p class="tiny">Curves digitised from Getinge (HLS, Avalon Elite) and Medtronic (Bio-Medicus) published charts by the open <a href="https://github.com/IMhongkeun/perfusion-tools" target="_blank" rel="noopener">perfusion-tools</a> project (MIT licence). Spot-checked against Broman’s whole-blood bench data: return-cannula flow at 80 mmHg agrees within about ±13 %.</p>
+    </div>
+  </div>
+ </div>
+
+ <div class="card" id="circCard" style="margin-top:20px">
+  <h2>Whole-circuit pressures</h2>
+  <p class="muted small">Pressure at each point of the circuit at the operating flow, using the cannulae selected above. Pressures are referenced to pump level, as circuit transducers read them.</p>
+  <div class="grid g-circ" style="margin-top:14px">
+    <div class="stack">
+      <div class="input-row">
+        <div><label class="lbl" for="cvp">CVP / RA (mmHg)</label><input class="input" id="cvp" type="number" value="10"></div>
+        <div><label class="lbl" for="mapIn">MAP (mmHg)</label><input class="input" id="mapIn" type="number" value="75"></div>
+      </div>
+      <div class="field">
+        <div class="field-head"><label for="bloodK">Blood-vs-water factor for cannula ΔP</label><span class="val">× <input class="num" data-for="bloodK" data-dec="2" type="number" step="0.05"></span></div>
+        <input type="range" id="bloodK" min="1" max="2" step="0.05" value="1.3" data-dec="2">
+        <div class="tiny">1.0 = manufacturer water chart. Broman: blood needs 20–90 % more gradient (return), 10–350 % (drainage).</div>
+      </div>
+      <div class="input-row">
+        <div><label class="lbl" for="tubD">Drainage tubing (m)</label><input class="input" id="tubD" type="number" value="1.5" step="0.1"></div>
+        <div><label class="lbl" for="tubR">Return tubing (m)</label><input class="input" id="tubR" type="number" value="1.5" step="0.1"></div>
+      </div>
+      <div class="input-row">
+        <div><label class="lbl" for="tubID">Tubing internal diameter</label><select class="input" id="tubID"><option value="9.525">3/8 inch (9.5 mm)</option><option value="12.7">1/2 inch (12.7 mm)</option><option value="6.35">1/4 inch (6.4 mm)</option></select></div>
+        <div><label class="lbl" for="oxyDP">Oxygenator ΔP (mmHg)</label><input class="input" id="oxyDP" type="number" value="25"></div>
+      </div>
+      <div><label class="lbl" for="pumpH">Pump height below right atrium (cm)</label><input class="input" id="pumpH" type="number" value="0"><div class="tiny">Positive if the pump sits below the heart: each 10 cm adds ≈ 7.8 mmHg at every transducer.</div></div>
+    </div>
+    <div>
+      <div class="graph" id="gCirc"></div>
+      <div class="stat"><span class="k">Pump inlet (P<sub>ven</sub>, P1)</span><span class="v" id="cP1">—</span></div>
+      <div class="stat"><span class="k">Pre-oxygenator (P<sub>int</sub>, P2)</span><span class="v" id="cP2">—</span></div>
+      <div class="stat"><span class="k">Post-oxygenator (P<sub>art</sub>, P3)</span><span class="v" id="cP3">—</span></div>
+      <div class="stat"><span class="k">Pump pressure head</span><span class="v" id="cHead">—</span></div>
+      <div class="stat"><span class="k">Losses: cannulae · tubing</span><span class="v small" id="cLoss">—</span></div>
+      <div class="note" id="cNote"></div>
+    </div>
+  </div>
+  <p class="tiny" style="margin-top:12px">Tubing loss from Darcy–Weisbach (blood ρ 1 060 kg/m³, μ 3.5 mPa·s; laminar 64/Re, Blasius when turbulent, blended through 2 300–4 000). Connectors and bends are ignored, so real losses run slightly higher. Model output for teaching, not a substitute for measured circuit pressures.</p>
+ </div>
+</section>
+
+<!-- ================= HEPARIN ================= -->
+<section class="panel" id="p-heparin">
+ <div class="grid g-main">
+  <div class="card">
+    <h2>Unfractionated heparin titration</h2>
+    <p class="muted small">Weight-based nomogram adapted from Raschke. Bands move with the target range you set.</p>
+    <div class="seg full small" style="margin:14px 0 20px" id="testSeg">
+      <button class="active" data-test="aPTT">aPTT</button><button data-test="ACT">ACT</button><button data-test="Xa">Anti-Xa</button>
+    </div>
+    <div class="grid g-2">
+      <div class="stack">
+        <div class="field">
+          <div class="field-head"><label for="lab" id="labLbl">aPTT</label><span class="val"><input class="num" data-for="lab" type="number" id="labNum"> <span id="labUnit">s</span></span></div>
+          <input type="range" id="lab" min="20" max="200" step="1" value="65">
+        </div>
+        <div>
+          <span class="lbl">Target range</span>
+          <div class="input-row" style="margin-top:4px">
+            <input class="input" id="tLo" type="number" aria-label="Target minimum">
+            <input class="input" id="tHi" type="number" aria-label="Target maximum">
+          </div>
+          <div class="tiny" id="tHint"></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div>
+          <span class="lbl">Syringe</span>
+          <div class="input-row" style="margin-top:4px">
+            <div><input class="input" id="hU" type="number" value="25000" aria-label="Units"><div class="tiny">units</div></div>
+            <div><input class="input" id="hV" type="number" value="50" aria-label="Volume"><div class="tiny">mL · <span id="conc"></span></div></div>
+          </div>
+        </div>
+        <div>
+          <label class="lbl" for="hR">Current rate</label>
+          <div class="input-unit" style="margin-top:4px">
+            <input class="input" id="hR" type="number" value="15" step="0.1">
+            <select class="input" id="hRU" style="width:auto"><option value="ukg">U/kg/h</option><option value="mlh">mL/h</option><option value="uh">U/h</option></select>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="allowBolus" checked> Include boluses</label>
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="tiny">Recommended action</div>
+      <div class="action" id="hAct">—</div>
+      <div class="kv" id="hKV"></div>
+      <div class="note warn">Many ECMO programmes avoid heparin boluses because of bleeding risk, and individualise targets. Follow your unit protocol; check antithrombin, platelets, fibrinogen and haemolysis when doses climb.</div>
+    </div>
+  </div>
+  <div class="card quiet">
+    <h3>Nomogram for current target</h3>
+    <div class="tablewrap"><table class="nomo" id="nomo"><thead><tr><th id="nomoH">aPTT</th><th>Bolus</th><th>Hold</th><th>Rate change</th></tr></thead><tbody></tbody></table></div>
+    <h4>Rate conversion</h4>
+    <span class="formula">Conc (U/mL) = Units ÷ Volume</span>
+    <span class="formula">U/kg/h = mL/h × Conc ÷ Weight</span>
+    <h4>Targets in common use</h4>
+    <ul class="plain">
+      <li>Anti-Xa 0.3–0.7 IU/mL (ELSO); ISTH suggests 0.3–0.5</li>
+      <li>ACT 180–220 s (historical ECMO range)</li>
+      <li>aPTT ≈ 1.5–2.5 × baseline; laboratory-specific</li>
+      <li>Initial infusion often 7.5–20 U/kg/h (ELSO)</li>
+    </ul>
+    <p class="tiny" style="margin-top:8px">Boluses are capped at 10 000 U. When infusion is held, restart at the new rate.</p>
+  </div>
+ </div>
+</section>
+
+<!-- ================= GAS EXCHANGE ================= -->
+<section class="panel" id="p-gas">
+ <div class="grid g-3">
+  <!-- systemic -->
+  <div class="card stack">
+    <div><h2>Systemic O₂ balance</h2><p class="muted small">Fick-based delivery and consumption.</p></div>
+    <div class="field"><div class="field-head"><label for="hb">Haemoglobin</label><span class="val"><input class="num" data-for="hb" data-dec="1" type="number" step="0.1"> g/dL</span></div><input type="range" id="hb" min="5" max="20" step="0.1" value="10" data-dec="1"></div>
+    <div class="field"><div class="field-head"><label for="co">Cardiac output (total systemic)</label><span class="val"><input class="num" data-for="co" data-dec="1" type="number" step="0.1"> L/min</span></div><input type="range" id="co" min="1" max="12" step="0.1" value="5.0" data-dec="1"><div class="tiny">VV: native CO. VA: native output + ECMO flow.</div></div>
+    <div class="field"><div class="field-head"><label for="sao2">SaO₂</label><span class="val"><input class="num" data-for="sao2" type="number"> %</span></div><input type="range" id="sao2" min="50" max="100" step="1" value="94"></div>
+    <div class="field"><div class="field-head"><label for="svo2">SvO₂ (mixed / central venous)</label><span class="val"><input class="num" data-for="svo2" type="number"> %</span></div><input type="range" id="svo2" min="20" max="95" step="1" value="70"></div>
+    <div><label class="lbl" for="hbK">Hb O₂-binding constant (mL O₂/g)</label><select class="input" id="hbK"><option value="1.34">1.34 (conventional)</option><option value="1.36">1.36</option><option value="1.39">1.39 (theoretical maximum)</option></select></div>
+    <div class="input-row">
+      <div><label class="lbl" for="pao2">PaO₂ (mmHg)</label><input class="input" id="pao2" type="number" value="75"></div>
+      <div><label class="lbl" for="pvo2">PvO₂ (mmHg)</label><input class="input" id="pvo2" type="number" value="40"></div>
+    </div>
+    <div>
+      <div class="stat"><span class="k">CaO₂ / CvO₂</span><span class="v" id="cont">—</span></div>
+      <div class="stat"><span class="k">DO₂</span><span class="v" id="do2">—</span></div>
+      <div class="stat"><span class="k">VO₂</span><span class="v" id="vo2">—</span></div>
+      <div class="stat"><span class="k">O₂ extraction</span><span class="v" id="oer">—</span></div>
+      <div class="stat"><span class="k">DO₂ : VO₂</span><span class="v" id="ratio">—</span></div>
+    </div>
+    <div>
+      <span class="formula">CxO₂ = <span class="kTxt">1.34</span> × Hb × SxO₂ + 0.0031 × PxO₂</span>
+      <span class="formula">DO₂ = CO × CaO₂ × 10</span>
+      <span class="formula">VO₂ = CO × (CaO₂ − CvO₂) × 10</span>
+    </div>
+  </div>
+
+  <!-- membrane lung -->
+  <div class="card stack">
+    <div><h2>Membrane lung</h2><p class="muted small">O₂ transfer and oxygenator function.</p></div>
+    <div class="field"><div class="field-head"><label for="qe">ECMO blood flow</label><span class="val"><input class="num" data-for="qe" data-dec="1" type="number" step="0.1"> L/min</span></div><input type="range" id="qe" min="0.5" max="8" step="0.1" value="4.2" data-dec="1"></div>
+    <div class="field"><div class="field-head"><label for="spre">Pre-oxygenator saturation</label><span class="val"><input class="num" data-for="spre" type="number"> %</span></div><input type="range" id="spre" min="30" max="100" step="1" value="75"></div>
+    <div class="field"><div class="field-head"><label for="spost">Post-oxygenator saturation</label><span class="val"><input class="num" data-for="spost" data-dec="1" type="number" step="0.1"> %</span></div><input type="range" id="spost" min="80" max="100" step="0.1" value="100" data-dec="1"></div>
+    <div class="input-row">
+      <div><label class="lbl" for="ppre">Pre-oxy PO₂</label><input class="input" id="ppre" type="number" placeholder="mmHg"></div>
+      <div><label class="lbl" for="ppost">Post-oxy PO₂</label><input class="input" id="ppost" type="number" placeholder="mmHg"></div>
+    </div>
+    <label class="check"><input type="checkbox" id="fdo2one" checked> Sweep FdO₂ = 1.0 when sampled</label>
+    <div class="input-row">
+      <div><label class="lbl" for="dp">ΔP now (pre − post)</label><input class="input" id="dp" type="number" placeholder="mmHg"></div>
+      <div><label class="lbl" for="dp0">ΔP baseline, same flow</label><input class="input" id="dp0" type="number" placeholder="mmHg"></div>
+    </div>
+    <div>
+      <div class="stat"><span class="k">O₂ transfer</span><span class="v" id="vo2ml">—</span></div>
+      <div class="stat"><span class="k">ECMO share of VO₂</span><span class="v" id="share">—</span></div>
+      <div class="stat"><span class="k">Post-oxygenator PO₂</span><span class="v" id="ppostS">—</span></div>
+      <div class="stat"><span class="k">ΔP trend</span><span class="v" id="dpS">—</span></div>
+    </div>
+    <div>
+      <span class="formula">V̇O₂ML = Q × [<span class="kTxt">1.34</span> × Hb × ΔSat + 0.0031 × ΔPO₂] × 10</span>
+      <p class="tiny">With a fresh oxygenator at FdO₂ 1.0, post-oxygenator PO₂ is usually well above 300 mmHg; values below ~150–200 mmHg suggest dysfunction. In VA ECMO FdO₂ is often lowered to target ≈150 mmHg, so interpret only at FdO₂ 1.0. Track ΔP as a trend at constant flow; thresholds here are teaching heuristics.</p>
+    </div>
+  </div>
+
+  <!-- recirc + sweep -->
+  <div class="stack">
+    <div class="card stack">
+      <div><h2>Recirculation</h2><p class="muted small">VV ECMO. Uses pre/post saturations and SvO₂ from the other cards.</p></div>
+      <div>
+        <div class="stat"><span class="k">Recirculation fraction</span><span class="v" id="recirc">—</span></div>
+        <div class="stat"><span class="k">Effective flow</span><span class="v" id="effq">—</span></div>
+      </div>
+      <span class="formula">R = (SpreO₂ − SvO₂) ÷ (SpostO₂ − SvO₂)</span>
+      <span class="formula">Effective flow = ECMO flow × (1 − R)</span>
+      <p class="tiny">SvO₂ should reflect true venous return uncontaminated by ECMO return blood — on VV ECMO this is hard to obtain, so treat the result as an estimate and trend it.</p>
+    </div>
+    <div class="card stack">
+      <div><h2>Sweep for target PaCO₂</h2><p class="muted small">CO₂ removal ≈ proportional to sweep.</p></div>
+      <div class="input-row">
+        <div><label class="lbl" for="sw">Current sweep (L/min)</label><input class="input" id="sw" type="number" value="4" step="0.5"></div>
+        <div><label class="lbl" for="pc">Current PaCO₂</label><input class="input" id="pc" type="number" value="55"></div>
+      </div>
+      <div><label class="lbl" for="pct">Target PaCO₂</label><input class="input" id="pct" type="number" value="45"></div>
+      <div class="stat"><span class="k">Estimated sweep</span><span class="v" id="swOut">—</span></div>
+      <span class="formula">New sweep ≈ Sweep × PaCO₂ ÷ Target</span>
+      <p class="tiny">Less accurate at high sweep or low blood flow, and ignores native lung CO₂ clearance. Avoid rapid PaCO₂ falls, especially at ECMO initiation.</p>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- ================= VV OXYGENATION MODEL ================= -->
+<section class="panel" id="p-vv">
+ <div class="grid g-main">
+  <div class="card">
+    <h2>Predicted SaO₂ on VV ECMO</h2>
+    <p class="muted small">Steady-state mixing model. ECMO-oxygenated blood mixes with venous return, passes the native lung (shunt), and reaches the arteries; oxygen consumption then sets venous content, which feeds back to the circuit.</p>
+    <div class="graph" id="gVV"></div>
+    <div class="result" style="margin-top:6px">
+      <div class="tiny">Predicted arterial saturation</div>
+      <div class="hero" id="vvSa">—</div>
+      <div class="kv" id="vvKV"></div>
+      <div class="note" id="vvNote"></div>
+    </div>
+  </div>
+  <div class="stack">
+    <div class="card stack">
+      <div class="field"><div class="field-head"><label for="vvQe">ECMO blood flow</label><span class="val"><input class="num" data-for="vvQe" data-dec="1" type="number" step="0.1"> L/min</span></div><input type="range" id="vvQe" min="0" max="7" step="0.1" value="4.2" data-dec="1"><button class="chip" id="vvUseTarget" type="button">Use target flow</button></div>
+      <div class="field"><div class="field-head"><label for="vvCO">Cardiac output</label><span class="val"><input class="num" data-for="vvCO" data-dec="1" type="number" step="0.1"> L/min</span></div><input type="range" id="vvCO" min="2" max="12" step="0.1" value="6.0" data-dec="1"></div>
+      <div class="field"><div class="field-head"><label for="vvR">Recirculation</label><span class="val"><input class="num" data-for="vvR" type="number"> %</span></div><input type="range" id="vvR" min="0" max="60" step="1" value="15"></div>
+      <div class="field"><div class="field-head"><label for="vvShunt">Native lung shunt fraction</label><span class="val"><input class="num" data-for="vvShunt" type="number"> %</span></div><input type="range" id="vvShunt" min="0" max="100" step="1" value="70"><div class="tiny">100 % = no native lung gas exchange.</div></div>
+      <div class="field"><div class="field-head"><label for="vvFiO2">Ventilator FiO₂</label><span class="val"><input class="num" data-for="vvFiO2" type="number"> %</span></div><input type="range" id="vvFiO2" min="21" max="100" step="1" value="50"></div>
+      <div class="field"><div class="field-head"><label for="vvHb">Haemoglobin</label><span class="val"><input class="num" data-for="vvHb" data-dec="1" type="number" step="0.1"> g/dL</span></div><input type="range" id="vvHb" min="5" max="15" step="0.1" value="10" data-dec="1"></div>
+      <div class="field"><div class="field-head"><label for="vvVO2">Oxygen consumption (VO₂)</label><span class="val"><input class="num" data-for="vvVO2" type="number" step="5"> mL/min</span></div><input type="range" id="vvVO2" min="80" max="500" step="5" value="250"><div class="tiny" id="vvVO2hint"></div></div>
+      <div><label class="lbl" for="vvPpost">Post-oxygenator PO₂ (mmHg)</label><input class="input" id="vvPpost" type="number" value="400"></div>
+    </div>
+    <div class="card quiet">
+      <h3>Model</h3>
+      <span class="formula">Q<sub>eff</sub> = Q<sub>ECMO</sub> × (1 − R), capped at CO</span>
+      <span class="formula">C<sub>pa</sub>O₂ = [Q<sub>eff</sub>·C<sub>post</sub> + (CO − Q<sub>eff</sub>)·C<sub>v</sub>O₂] ÷ CO</span>
+      <span class="formula">C<sub>a</sub>O₂ = Q<sub>s</sub>/Q<sub>t</sub>·C<sub>pa</sub>O₂ + (1 − Q<sub>s</sub>/Q<sub>t</sub>)·C<sub>c′</sub>O₂</span>
+      <span class="formula">C<sub>v</sub>O₂ = C<sub>a</sub>O₂ − VO₂ ÷ (10·CO)  (solved iteratively)</span>
+      <span class="formula">P<sub>A</sub>O₂ = FiO₂ × (760 − 47) − 40 ÷ 0.8</span>
+      <span class="formula">S = 1 ÷ [23 400 ÷ (P³ + 150P) + 1]  (Severinghaus)</span>
+      <ul class="plain"><li>Schmidt et al.: when ECMO flow ÷ cardiac output exceeded 60 %, SaO₂ was always above 90 %.</li><li>Assumes sea level, PaCO₂ 40 mmHg, full end-capillary equilibration in ventilated alveoli and no right-to-left cardiac shunt.</li><li>Recirculation here is an input; take it from the Gas Exchange tab or a dilution measurement.</li></ul>
+    </div>
+  </div>
+ </div>
+</section>
+
+<footer>
+  <p><strong>Developed by Dr. Rajavardhan Rangappa.</strong></p>
+  <div class="disclaimer"><strong>Disclaimer.</strong> For education only. Outputs are estimates from simplified physiological models and must not replace clinical judgement, local protocols or manufacturer instructions.</div>
+  
+  <div class="meta-row">
+    <span class="pill" id="verPill">v4.0 · 24 Nov 2026</span>
+    <button class="pill selftest" id="stPill" type="button" aria-expanded="false">Self-tests running…</button>
+  </div>
+  <div id="stPanel" class="disclaimer hidden"></div>
+  <details class="changelog"><summary>Changelog</summary>
+    <ul class="plain">
+      <li><strong>v4.0 (24 Nov 2026)</strong> — Whole-circuit pressure model; VV ECMO predicted-SaO₂ model; ideal/adjusted dosing weight and Mosteller BSA; selectable Hb O₂ constant (dissolved O₂ 0.0031); built-in self-tests.</li>
+      <li><strong>v3.1</strong> — Colour edition; per-calculator accent colours; venous/arterial graph colours.</li>
+      <li><strong>v3.0</strong> — Manufacturer-digitised cannula curves (Getinge HLS/Avalon, Medtronic Bio-Medicus); phone layout with bottom tab bar.</li>
+      <li><strong>v2.0</strong> — Heparin band, anti-Xa and negative-rate fixes; Fick using cardiac output; dissolved O₂ in membrane transfer; recirculation-adjusted flow; sweep estimate.</li>
+      <li><strong>v1.0</strong> — Original ECMO Suite.</li>
+    </ul>
+  </details>
+  <ol class="refs">
+    <li>Tonna JE et al. Management of adult patients supported with VV ECMO: ELSO guideline. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8315725" target="_blank" rel="noopener">ASAIO J 2021</a>.</li>
+    <li>Lorusso R et al. ELSO interim guidelines for VA ECMO in adult cardiac patients. <a href="https://elso.org/Portals/0/files/pdf/ELSO_Interim_Guidelines_for_Venoarterial.2.pdf" target="_blank" rel="noopener">ASAIO J 2021</a>.</li>
+    <li>McMichael ABV et al. 2021 ELSO adult and pediatric anticoagulation guidelines. <a href="https://pubmed.ncbi.nlm.nih.gov/35080509/" target="_blank" rel="noopener">ASAIO J 2022</a>.</li>
+    <li>Raschke RA et al. The weight-based heparin dosing nomogram. <a href="https://pubmed.ncbi.nlm.nih.gov/8214998/" target="_blank" rel="noopener">Ann Intern Med 1993</a>.</li>
+    <li>Helms J et al. Anticoagulation in adult ECMO: ISTH guidance. <a href="https://guidelinecentral.com/guideline/2559379" target="_blank" rel="noopener">J Thromb Haemost 2023</a>.</li>
+    <li>Physiology of venoarterial ECMO: flow and gas exchange (review). <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3998007" target="_blank" rel="noopener">PMC3998007</a>.</li>
+    <li>Optimising PO₂ during peripheral VA ECMO: a narrative review. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9316319" target="_blank" rel="noopener">Crit Care 2022</a>.</li>
+    <li>Du Bois D, Du Bois EF. A formula to estimate surface area. Arch Intern Med 1916.</li>
+    <li>Broman LM et al. Pressure and flow properties of cannulae for ECMO I: return (arterial) cannulae. <a href="https://core.ac.uk/download/421862148.pdf" target="_blank" rel="noopener">Perfusion 2019;34(1S):58–64</a>.</li>
+    <li>Broman LM et al. Pressure and flow properties of cannulae for ECMO II: drainage (venous) cannulae. <a href="https://pubmed.ncbi.nlm.nih.gov/30966909/" target="_blank" rel="noopener">Perfusion 2019;34(1S):65–73</a>.</li>
+    <li>Broman LM et al. Pressure and flow properties of dual-lumen cannulae for ECMO. <a href="https://pred.uni-regensburg.de/id/eprint/44413/" target="_blank" rel="noopener">Perfusion 2020;35(8):736–744</a>.</li>
+    <li>Hörwing et al. Haemodynamics in femoro-femoral VV ECMO using large eddy simulations. <a href="https://www.nature.com/articles/s41598-025-22403-6" target="_blank" rel="noopener">Sci Rep 2025;15:35229</a>.</li>
+    <li>Getinge. HLS Cannulae brochure / IFU pressure-drop charts. <a href="https://www.getinge.com/dam/hospital/documents/english/hls_cannulae_brochure-32284-en.pdf" target="_blank" rel="noopener">getinge.com</a>.</li>
+    <li>Medtronic. Cannulae product catalog (Bio-Medicus pressure-loss charts). <a href="https://www.medtronic.com/content/dam/medtronic-wide/public/united-states/products/cardiac-vascular/cardiovascular/cannulae/cannulae-us-product-catalog.pdf" target="_blank" rel="noopener">medtronic.com</a>.</li>
+    <li>Schmidt M et al. Blood oxygenation and decarboxylation determinants during VV ECMO for respiratory failure in adults. <a href="https://doi.org/10.1007/s00134-012-2785-8" target="_blank" rel="noopener">Intensive Care Med 2013;39:838–846</a>.</li>
+    <li>Messaï E et al. A new formula for determining arterial oxygen saturation during VV extracorporeal oxygenation. <a href="https://link.springer.com/article/10.1007/s00134-012-2756-0" target="_blank" rel="noopener">Intensive Care Med 2013;39:327–334</a>.</li>
+    <li>Severinghaus JW. Simple, accurate equations for human blood O₂ dissociation computations. J Appl Physiol 1979;46:599–602.</li>
+    <li>Devine BJ. Gentamicin therapy. Drug Intell Clin Pharm 1974;8:650–655 (ideal body weight).</li>
+    <li>Mosteller RD. Simplified calculation of body-surface area. N Engl J Med 1987;317:1098.</li>
+    <li>Extracorporeal Life Support Organization. ECMO: Extracorporeal Cardiopulmonary Support in Critical Care (“Red Book”), 6th ed. — drainage pressure target &gt; −100 mmHg.</li>
+    <li>IMhongkeun. perfusion-tools: digitised cannula pressure-drop dataset (MIT licence). <a href="https://github.com/IMhongkeun/perfusion-tools" target="_blank" rel="noopener">github.com</a>.</li>
+  </ol>
+</footer>
+</div>
 
 <script>
-// --- TEMPLATE FUNCTIONS --- //
-function getCannulaSizingHTML() {
-    return `
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <div class="lg:col-span-2">
-            <div class="card p-6 md:p-8 h-full">
-                <h2 class="text-2xl font-semibold mb-6 text-gray-800">Cannula Sizing</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600">Weight</label>
-                        <div class="slider-container"><input type="range" id="cannula-weight-slider" min="1" max="150" value="70"><span id="cannula-weight-value" class="slider-value">70 kg</span></div>
-                    </div>
-                    <div>
-                        <label for="cannula-flow" class="block text-sm font-medium text-gray-600">Operating Flow (L/min)</label>
-                        <input type="number" id="cannula-flow" class="w-full p-3 input-field" placeholder="Auto-calculated" step="0.1">
-                        <p class="text-xs text-gray-500 mt-1">Adjust to see operating point on graph. Recommended range shown in blue.</p>
-                    </div>
-                    <div class="space-y-2 pt-2">
-                       <h4 class="font-semibold text-gray-800">Cannula Selection</h4>
-                       <label for="drainage-cannula-select" class="block text-xs font-medium text-gray-500 mt-2">Drainage</label>
-                       <select id="drainage-cannula-select" class="w-full p-3 input-field"></select>
-                       <label for="return-cannula-select" class="block text-xs font-medium text-gray-500 mt-2">Return</label>
-                       <select id="return-cannula-select" class="w-full p-3 input-field"></select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="lg:col-span-3">
-             <div class="card p-6 h-full">
-                <h3 class="text-xl font-semibold mb-4 text-gray-800">Pressure-Flow Performance</h3>
-                <div class="grid grid-cols-1 gap-4">
-                   <div class="cannula-graph" id="drainage-graph-container"></div>
-                   <div class="cannula-graph" id="return-graph-container"></div>
-                </div>
-             </div>
-        </div>
-    </div>`;
-}
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const boxFor = id => document.querySelector(`.num[data-for="${id}"]`);
+/* Read a slider-backed value from its number box (allows typing beyond slider range). */
+const val = id => { const b = boxFor(id); const v = parseFloat(b ? b.value : $(id).value); return isNaN(v) ? NaN : v; };
+const raw = id => parseFloat($(id).value);
+const decOf = id => +($(id).dataset.dec || 0);
+const fill = r => r.style.setProperty('--fill', ((r.value-r.min)/(r.max-r.min)*100||0)+'%');
+function setVal(id, v){ const r=$(id), b=boxFor(id); r.value=v; fill(r); if(b) b.value=(+v).toFixed(decOf(id)); }
+const fmt = (v,d=1) => (v==null||!isFinite(v)) ? '—' : v.toFixed(d);
+const pill = (cls,t) => `<span class="pill ${cls}">${t}</span>`;
 
-function getHeparinProtocolHTML() {
-    return `
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <div class="lg:col-span-3">
-            <div class="card p-6 md:p-8 h-full">
-                <h2 class="text-2xl font-semibold mb-6 text-gray-800">Heparin Infusion Protocol</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-8">
-                    <div class="space-y-6">
-                         <div>
-                           <label class="block text-sm font-medium text-gray-600 mb-2">Patient & Lab Data</label>
-                           <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
-                               <div>
-                                    <label for="heparin-weight-slider" class="block text-xs font-medium text-gray-600">Patient Weight</label>
-                                    <div class="slider-container"><input type="range" id="heparin-weight-slider" min="1" max="150" value="70"><span id="heparin-weight-value" class="slider-value">70 kg</span></div>
-                                </div>
-                               <div>
-                                    <label for="heparin-lab-value-slider" class="block text-xs font-medium text-gray-600">Current Lab Value (<span id="lab-type-label">aPTT</span>)</label>
-                                    <div class="slider-container"><input type="range" id="heparin-lab-value-slider" min="30" max="150" value="65" step="0.1"><span id="heparin-lab-value" class="slider-value">65</span></div>
-                                </div>
-                           </div>
-                       </div>
-                       <div id="heparin-result-container" class="hidden space-y-4">
-                            <div class="result-display p-4"><h4 class="font-semibold text-gray-800">Recommended Action</h4><p id="heparin-action" class="text-lg font-bold text-accent"></p></div>
-                            <div class="result-display p-4"><h4 class="font-semibold text-gray-800">New Infusion Rate</h4><p id="heparin-new-rate" class="text-lg font-bold text-accent"></p></div>
-                       </div>
-                    </div>
-                    <div class="space-y-6">
-                        <div>
-                           <label class="block text-sm font-medium text-gray-600 mb-2">Protocol & Infusion Setup</label>
-                           <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
-                                <div class="flex rounded-lg border border-gray-200 p-1">
-                                    <button id="heparin-aptt-btn" class="mode-button active flex-1 py-2 px-4 rounded-md text-xs">aPTT</button>
-                                    <button id="heparin-act-btn" class="mode-button flex-1 py-2 px-4 rounded-md text-xs">ACT</button>
-                                    <button id="heparin-xa-btn" class="mode-button flex-1 py-2 px-4 rounded-md text-xs">Anti-Xa</button>
-                               </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="heparin-units" class="block text-xs font-medium text-gray-600">Units</label>
-                                        <input type="number" id="heparin-units" class="w-full p-2 input-field" value="25000">
-                                    </div>
-                                    <div>
-                                        <label for="heparin-volume" class="block text-xs font-medium text-gray-600">Volume (mL)</label>
-                                        <input type="number" id="heparin-volume" class="w-full p-2 input-field" value="50">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-600">Current Rate</label>
-                                    <div class="flex items-center gap-2">
-                                        <input type="number" id="heparin-current-rate-input" class="w-full p-2 input-field" value="15">
-                                        <select id="heparin-rate-unit-select" class="input-field p-2 text-xs">
-                                            <option value="units">u/kg/hr</option>
-                                            <option value="ml">mL/hr</option>
-                                        </select>
-                                    </div>
-                                </div>
-                           </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="lg:col-span-2">
-            <div class="card formula-card p-6 h-full">
-                <h3 class="text-xl font-semibold mb-4 text-gray-800">Protocol Logic</h3>
-                <div class="space-y-6 text-sm text-gray-700">
-                    <div>
-                        <h4 class="font-semibold text-base text-gray-800 mb-2">Rate Conversion</h4>
-                        <p>Calculations use <code>units/kg/hr</code>. If you input <code>mL/hr</code>, it's converted using:</p>
-                        <p class="mt-2"><span class="formula">Concentration = Total Units / Total Volume</span></p>
-                        <p class="mt-2"><span class="formula">Rate (u/kg/hr) = (Rate (mL/hr) &times; C) / W</span></p>
-                    </div>
-                    <div class="mt-4">
-                        <h4 class="font-semibold text-base text-gray-800 mb-2">Adjustable Target Range</h4>
-                        <div class="flex items-center gap-2 p-2 bg-white border border-gray-300 rounded-lg">
-                            <input type="number" id="heparin-target-min" class="w-full p-2 input-field text-center">
-                            <span class="text-gray-500">-</span>
-                            <input type="number" id="heparin-target-max" class="w-full p-2 input-field text-center">
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">Adjust the therapeutic target range for the selected protocol.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>`;
-}
+const state = { mode:'VV', test:'aPTT', target:null, qeTouched:false, opTouched:false, vvTouched:false, sex:'M', k:1.34 };
 
-function getOxygenationHealthHTML() {
-    return `
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-1 space-y-6">
-            <div class="card p-6">
-                <h3 class="font-semibold text-lg mb-4">Patient & Circuit Inputs</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600">ECMO Blood Flow</label>
-                        <div class="slider-container"><input type="range" id="oxy-flow-slider" min="1" max="8" value="4" step="0.1"><span id="oxy-flow-value" class="slider-value">4.0 L/min</span></div>
-                    </div>
-                     <div>
-                        <label class="block text-xs font-medium text-gray-600">Hemoglobin</label>
-                        <div class="slider-container"><input type="range" id="oxy-hb-slider" min="5" max="20" value="10" step="0.1"><span id="oxy-hb-value" class="slider-value">10.0 g/dL</span></div>
-                    </div>
-                </div>
-            </div>
-             <div class="card p-6">
-                <h3 class="font-semibold text-lg mb-4">Recirculation (VV ECMO)</h3>
-                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600">Pre-Membrane Saturation (SpreO₂)</label>
-                        <div class="slider-container"><input type="range" id="oxy-pre-sat-slider" min="50" max="100" value="75"><span id="oxy-pre-sat-value" class="slider-value">75 %</span></div>
-                    </div>
-                     <div>
-                        <label class="block text-xs font-medium text-gray-600">Post-Membrane Saturation (Spo₂)</label>
-                        <div class="slider-container"><input type="range" id="oxy-post-sat-slider" min="95" max="100" value="100" step="0.1"><span id="oxy-post-sat-value" class="slider-value">100.0 %</span></div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600">Venous Saturation (SvO₂)</label>
-                        <div class="slider-container"><input type="range" id="oxy-recirc-svo2-slider" min="30" max="95" value="70"><span id="oxy-recirc-svo2-value" class="slider-value">70 %</span></div>
-                    </div>
-                    <div class="result-display p-3 text-center">
-                        <h4 class="font-semibold text-gray-800 text-sm">Recirculation %</h4>
-                        <p id="oxy-recirculation-result" class="text-2xl font-bold text-accent"></p>
-                    </div>
-                    <div class="formula-card p-3 rounded-lg text-xs mt-2">
-                        <span class="formula">((SpreO₂ - SvO₂) / (SpoO₂ - SvO₂)) &times; 100</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="lg:col-span-1 space-y-6">
-             <div class="card p-6">
-                <h3 class="font-semibold text-lg mb-4">Oxygenator Health</h3>
-                <div class="space-y-4">
-                    <div>
-                         <label class="block text-xs font-medium text-gray-600">Oxygenator Model</label>
-                         <select id="oxy-model-select" class="w-full p-2 input-field"></select>
-                    </div>
-                    <div>
-                         <label class="block text-xs font-medium text-gray-600">Current TMP</label>
-                         <input type="number" id="oxy-tmp-input" class="w-full p-2 input-field" placeholder="e.g., 45 mmHg">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600">Membrane PaO₂ (Optional)</label>
-                        <div class="grid grid-cols-2 gap-2">
-                             <input type="number" id="oxy-pre-pao2-input" class="w-full p-2 input-field" placeholder="Pre">
-                             <input type="number" id="oxy-post-pao2-input" class="w-full p-2 input-field" placeholder="Post">
-                        </div>
-                    </div>
-                    <div id="oxy-health-result" class="result-display p-3 text-center"></div>
-                     <div class="result-display p-3 text-center mt-4">
-                         <h4 class="font-semibold text-gray-800 text-sm">O₂ Transfer Rate (mL/min)</h4>
-                         <p id="oxy-transfer-result" class="text-2xl font-bold text-accent"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="lg:col-span-1 space-y-6">
-             <div class="card p-6">
-                <h3 class="font-semibold text-lg mb-4">Systemic Oxygenation</h3>
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-2">Arterial (SaO₂)</label>
-                        <div class="slider-container"><input type="range" id="oxy-sao2-slider" min="70" max="100" value="99"><span id="oxy-sao2-value" class="slider-value">99 %</span></div>
-                        <input type="number" id="oxy-pao2-input" value="100" class="w-full p-2 mt-2 input-field" placeholder="PaO₂ (mmHg)">
-                    </div>
-                     <div>
-                        <label class="block text-sm font-medium text-gray-600 mb-2">Venous (SvO₂)</label>
-                        <div class="slider-container"><input type="range" id="oxy-svo2-slider" min="30" max="95" value="70"><span id="oxy-svo2-value" class="slider-value">70 %</span></div>
-                        <input type="number" id="oxy-pvo2-input" value="40" class="w-full p-2 mt-2 input-field" placeholder="PvO₂ (mmHg)">
-                    </div>
-                </div>
-             </div>
-             <div class="card p-6">
-                 <h3 class="font-semibold text-lg mb-4">Calculated Results</h3>
-                 <div class="space-y-4">
-                    <div class="result-display p-3"><h4 class="font-semibold text-gray-800 text-sm">Delivery (DO₂)</h4><p id="oxy-do2-result" class="text-2xl font-bold text-accent"></p></div>
-                    <div class="result-display p-3"><h4 class="font-semibold text-gray-800 text-sm">Consumption (VO₂)</h4><p id="oxy-vo2-result" class="text-2xl font-bold text-accent"></p></div>
-                    <div class="result-display p-3"><h4 class="font-semibold text-gray-800 text-sm">Extraction (OER)</h4><p id="oxy-oer-result" class="text-2xl font-bold text-success"></p></div>
-                 </div>
-                 <div class="formula-card p-3 mt-4 rounded-lg text-xs space-y-2">
-                    <p><span class="formula">DO₂ = CaO₂ &times; Flow &times; 10</span></p>
-                    <p><span class="formula">VO₂ = (CaO₂ - CvO₂) &times; Flow &times; 10</span></p>
-                    <p><span class="formula">OER = ((CaO₂ - CvO₂) / CaO₂) &times; 100</span></p>
-                 </div>
-             </div>
-        </div>
-    </div>
-    `;
-}
-
-
-// --- MAIN SCRIPT --- //
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('cannula-content').innerHTML = getCannulaSizingHTML();
-    document.getElementById('heparin-content').innerHTML = getHeparinProtocolHTML();
-    document.getElementById('oxygenation-content').innerHTML = getOxygenationHealthHTML();
-    
-    let calculatedFlowL = null;
-    let ecmoMode = 'VV';
-    let heparinProtocol = 'aPTT';
-
-    const mainContainer = document.querySelector('.main-container');
-    const tabs = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    const flowVVModeBtn = document.getElementById('flow-vv-mode-btn');
-    const flowVAModeBtn = document.getElementById('flow-va-mode-btn');
-    const flowVVInputs = document.getElementById('flow-vv-inputs');
-    const flowVAInputs = document.getElementById('flow-va-inputs');
-    const flowVVFormulas = document.getElementById('flow-vv-formulas');
-    const flowVAFormulas = document.getElementById('flow-va-formulas');
-    const flowWeightSlider = document.getElementById('flow-weight-slider');
-    const flowWeightValue = document.getElementById('flow-weight-value');
-    const flowHeightSlider = document.getElementById('flow-height-slider');
-    const flowHeightValue = document.getElementById('flow-height-value');
-    const flowRateSlider = document.getElementById('flow-rate');
-    const flowRateValue = document.getElementById('flow-rate-value');
-    const flowCurrentSlider = document.getElementById('flow-current-slider');
-    const flowCurrentValue = document.getElementById('flow-current-value');
-    const flowResultEl = document.getElementById('flow-result');
-    const vaResultDetails = document.getElementById('va-result-details');
-    const vaSupportPercentEl = document.getElementById('va-support-percent');
-    
-    const cannulaWeightSlider = document.getElementById('cannula-weight-slider');
-    const cannulaWeightValue = document.getElementById('cannula-weight-value');
-    const cannulaFlowInput = document.getElementById('cannula-flow');
-    const drainageSelect = document.getElementById('drainage-cannula-select');
-    const returnSelect = document.getElementById('return-cannula-select');
-    const drainageGraphContainer = document.getElementById('drainage-graph-container');
-    const returnGraphContainer = document.getElementById('return-graph-container');
-
-    const heparinAPTTBtn = document.getElementById('heparin-aptt-btn');
-    const heparinACTBtn = document.getElementById('heparin-act-btn');
-    const heparinXaBtn = document.getElementById('heparin-xa-btn');
-    const heparinWeightSlider = document.getElementById('heparin-weight-slider');
-    const heparinWeightValue = document.getElementById('heparin-weight-value');
-    const heparinLabValueSlider = document.getElementById('heparin-lab-value-slider');
-    const heparinLabValue = document.getElementById('heparin-lab-value');
-    const labTypeLabel = document.getElementById('lab-type-label');
-    const heparinCurrentRateInput = document.getElementById('heparin-current-rate-input');
-    const heparinRateUnitSelect = document.getElementById('heparin-rate-unit-select');
-    const heparinUnitsInput = document.getElementById('heparin-units');
-    const heparinVolumeInput = document.getElementById('heparin-volume');
-    const heparinResultContainer = document.getElementById('heparin-result-container');
-    const heparinActionEl = document.getElementById('heparin-action');
-    const heparinNewRateEl = document.getElementById('heparin-new-rate');
-    const heparinTargetMinInput = document.getElementById('heparin-target-min');
-    const heparinTargetMaxInput = document.getElementById('heparin-target-max');
-    
-    const oxyFlowSlider = document.getElementById('oxy-flow-slider');
-    const oxyFlowValue = document.getElementById('oxy-flow-value');
-    const oxyHbSlider = document.getElementById('oxy-hb-slider');
-    const oxyHbValue = document.getElementById('oxy-hb-value');
-    const oxySao2Slider = document.getElementById('oxy-sao2-slider');
-    const oxySao2Value = document.getElementById('oxy-sao2-value');
-    const oxyPao2Input = document.getElementById('oxy-pao2-input');
-    const oxySvo2Slider = document.getElementById('oxy-svo2-slider');
-    const oxySvo2Value = document.getElementById('oxy-svo2-value');
-    const oxyPvo2Input = document.getElementById('oxy-pvo2-input');
-    const oxyPreSatSlider = document.getElementById('oxy-pre-sat-slider');
-    const oxyPreSatValue = document.getElementById('oxy-pre-sat-value');
-    const oxyPostSatSlider = document.getElementById('oxy-post-sat-slider');
-    const oxyPostSatValue = document.getElementById('oxy-post-sat-value');
-    const oxyRecirculationResultEl = document.getElementById('oxy-recirculation-result');
-    const oxyRecircSvo2Slider = document.getElementById('oxy-recirc-svo2-slider');
-    const oxyRecircSvo2Value = document.getElementById('oxy-recirc-svo2-value');
-    const oxyModelSelect = document.getElementById('oxy-model-select');
-    const oxyTmpInput = document.getElementById('oxy-tmp-input');
-    const oxyPrePao2Input = document.getElementById('oxy-pre-pao2-input');
-    const oxyPostPao2Input = document.getElementById('oxy-post-pao2-input');
-    const oxyHealthResultEl = document.getElementById('oxy-health-result');
-    const oxyDo2ResultEl = document.getElementById('oxy-do2-result');
-    const oxyVo2ResultEl = document.getElementById('oxy-vo2-result');
-    const oxyOerResultEl = document.getElementById('oxy-oer-result');
-    const oxyTransferResultEl = document.getElementById('oxy-transfer-result');
-
-    const cannulaDatabase = [
-        { key: 'M-17V', brand: 'Maquet HLS', type: 'Venous', size: '17 Fr', pressureFunc: flow => -1 * (2.8 * Math.pow(flow, 2) + 6.0 * flow) },
-        { key: 'M-19V', brand: 'Maquet HLS', type: 'Venous', size: '19 Fr', pressureFunc: flow => -1 * (1.9 * Math.pow(flow, 2) + 5.0 * flow) },
-        { key: 'M-21V', brand: 'Maquet HLS', type: 'Venous', size: '21 Fr', pressureFunc: flow => -1 * (1.3 * Math.pow(flow, 2) + 4.5 * flow) },
-        { key: 'M-23V', brand: 'Maquet HLS', type: 'Venous', size: '23 Fr', pressureFunc: flow => -1 * (1.1 * Math.pow(flow, 2) + 4.0 * flow) },
-        { key: 'M-25V', brand: 'Maquet HLS', type: 'Venous', size: '25 Fr', pressureFunc: flow => -1 * (0.8 * Math.pow(flow, 2) + 3.5 * flow) },
-        { key: 'M-15A', brand: 'Maquet HLS', type: 'Arterial', size: '15 Fr', pressureFunc: flow => 6.0 * Math.pow(flow, 2) + 15 * flow },
-        { key: 'M-17A', brand: 'Maquet HLS', type: 'Arterial', size: '17 Fr', pressureFunc: flow => 4.5 * Math.pow(flow, 2) + 12 * flow },
-        { key: 'M-19A', brand: 'Maquet HLS', type: 'Arterial', size: '19 Fr', pressureFunc: flow => 3.2 * Math.pow(flow, 2) + 10 * flow },
-        { key: 'M-21A', brand: 'Maquet HLS', type: 'Arterial', size: '21 Fr', pressureFunc: flow => 2.0 * Math.pow(flow, 2) + 8 * flow },
-        { key: 'B-17V', brand: 'Medtronic Bio-Medicus', type: 'Venous', size: '17 Fr', pressureFunc: flow => -1 * (3.0 * Math.pow(flow, 2) + 6.5 * flow) },
-        { key: 'B-19V', brand: 'Medtronic Bio-Medicus', type: 'Venous', size: '19 Fr', pressureFunc: flow => -1 * (2.2 * Math.pow(flow, 2) + 5.5 * flow) },
-        { key: 'B-21V', brand: 'Medtronic Bio-Medicus', type: 'Venous', size: '21 Fr', pressureFunc: flow => -1 * (1.5 * Math.pow(flow, 2) + 5.0 * flow) },
-        { key: 'B-23V', brand: 'Medtronic Bio-Medicus', type: 'Venous', size: '23 Fr', pressureFunc: flow => -1 * (1.2 * Math.pow(flow, 2) + 4.2 * flow) },
-        { key: 'B-25V', brand: 'Medtronic Bio-Medicus', type: 'Venous', size: '25 Fr', pressureFunc: flow => -1 * (1.0 * Math.pow(flow, 2) + 4.0 * flow) },
-        { key: 'B-15A', brand: 'Medtronic Bio-Medicus', type: 'Arterial', size: '15 Fr', pressureFunc: flow => 7.0 * Math.pow(flow, 2) + 16 * flow },
-        { key: 'B-17A', brand: 'Medtronic Bio-Medicus', type: 'Arterial', size: '17 Fr', pressureFunc: flow => 5.0 * Math.pow(flow, 2) + 13 * flow },
-        { key: 'B-19A', brand: 'Medtronic Bio-Medicus', type: 'Arterial', size: '19 Fr', pressureFunc: flow => 3.5 * Math.pow(flow, 2) + 11 * flow },
-        { key: 'B-21A', brand: 'Medtronic Bio-Medicus', type: 'Arterial', size: '21 Fr', pressureFunc: flow => 2.5 * Math.pow(flow, 2) + 9 * flow },
-        { key: 'E-18V', brand: 'Edwards Fem-Flex', type: 'Venous', size: '18 Fr', pressureFunc: flow => -1 * (2.5 * Math.pow(flow, 2) + 5.8 * flow) },
-        { key: 'E-20V', brand: 'Edwards Fem-Flex', type: 'Venous', size: '20 Fr', pressureFunc: flow => -1 * (1.8 * Math.pow(flow, 2) + 5.2 * flow) },
-        { key: 'E-16A', brand: 'Edwards Fem-Flex', type: 'Arterial', size: '16 Fr', pressureFunc: flow => 5.5 * Math.pow(flow, 2) + 14 * flow },
-        { key: 'E-18A', brand: 'Edwards Fem-Flex', type: 'Arterial', size: '18 Fr', pressureFunc: flow => 4.0 * Math.pow(flow, 2) + 11.5 * flow },
-    ];
-    const drainageCannulas = cannulaDatabase.filter(c => c.type === 'Venous').sort((a,b) => parseInt(a.size) - parseInt(b.size));
-    const returnCannulas = cannulaDatabase.filter(c => c.type === 'Arterial').sort((a,b) => parseInt(a.size) - parseInt(b.size));
-
-    let protocols = {
-        aPTT: [ { range: [0, 45], bolus: 80, change: 4, hold: 0 }, { range: [46, 54], bolus: 40, change: 2, hold: 0 }, { range: [55, 75], bolus: 0, change: 0, hold: 0 }, { range: [76, 90], bolus: 0, change: -2, hold: 0 }, { range: [91, 100], bolus: 0, change: -2, hold: 30 }, { range: [101, 150], bolus: 0, change: -3, hold: 60 } ],
-        ACT: [ { range: [0, 159], bolus: 80, change: 4, hold: 0 }, { range: [160, 179], bolus: 40, change: 2, hold: 0 }, { range: [180, 220], bolus: 0, change: 0, hold: 0 }, { range: [221, 240], bolus: 0, change: -2, hold: 0 }, { range: [241, 260], bolus: 0, change: -2, hold: 30 }, { range: [261, 300], bolus: 0, change: -3, hold: 60 } ],
-        Xa: [ { range: [0, 0.19], bolus: 40, change: 2, hold: 0 }, { range: [0.2, 0.29], bolus: 0, change: 1, hold: 0 }, { range: [0.3, 0.7], bolus: 0, change: 0, hold: 0 }, { range: [0.71, 1.0], bolus: 0, change: -1, hold: 0 }, { range: [1.01, 1.5], bolus: 0, change: -2, hold: 60 }, ]
-    };
-    
-    const oxygenatorSpecs = {
-        'maquet-quadrox': { name: 'Maquet Quadrox-i', tmpRange: [20, 50], watchThreshold: 60, changeThreshold: 80, postO2: 400 },
-        'medtronic-nautilus': { name: 'Medtronic Nautilus', tmpRange: [25, 60], watchThreshold: 75, changeThreshold: 90, postO2: 380 },
-        'terumo-capiox': { name: 'Terumo Capiox RX', tmpRange: [20, 55], watchThreshold: 70, changeThreshold: 85, postO2: 420 },
-        'livanova-inspire': { name: 'LivaNova (Sorin) Inspire', tmpRange: [25, 65], watchThreshold: 75, changeThreshold: 95, postO2: 400 },
-        'medos-hilite': { name: 'Medos Hilite 7000', tmpRange: [20, 50], watchThreshold: 65, changeThreshold: 80, postO2: 415 },
-        'eurosets-admiral': { name: 'Eurosets Admiral', tmpRange: [15, 50], watchThreshold: 60, changeThreshold: 75, postO2: 410 },
-    };
-
-    setTimeout(() => mainContainer.style.opacity = '1', 100);
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const targetId = tab.dataset.tab + '-content';
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            tabContents.forEach(content => {
-                content.classList.toggle('hidden', content.id !== targetId);
-            });
-            if (tab.dataset.tab === 'cannula') syncToCannulaTab();
-            if (tab.dataset.tab === 'oxygenation') syncToOxygenationTab();
-        });
-    });
-    
-    function addSliderListener(slider, valueEl, unit, decimals = 1, callback = null) {
-        if (!slider) return;
-        const update = () => {
-            if (valueEl) valueEl.textContent = `${parseFloat(slider.value).toFixed(decimals)} ${unit}`;
-            if(callback) callback();
-        };
-        slider.addEventListener('input', update);
-        update();
-    }
-
-    function setFlowMode(mode) {
-        ecmoMode = mode;
-        const isVV = mode === 'VV';
-        flowVAModeBtn.classList.toggle('active', !isVV);
-        flowVVModeBtn.classList.toggle('active', isVV);
-        flowVAInputs.classList.toggle('hidden', isVV);
-        flowVVInputs.classList.toggle('hidden', !isVV);
-        flowVAFormulas.classList.toggle('hidden', isVV);
-        flowVVFormulas.classList.toggle('hidden', !isVV);
-        updateFlowCalculation();
-    }
-
-    function calculateTargetFlow(mode, weight, height, rate) {
-        if (!weight || weight <= 0) return null;
-        if (mode === 'VV') {
-            return (weight * rate) / 1000;
-        } else {
-            if (!height || height <= 0) return null;
-            const bsa = 0.007184 * Math.pow(height, 0.725) * Math.pow(weight, 0.425);
-            const cardiacOutput = bsa * 3.0;
-            return cardiacOutput * 0.80;
-        }
-    }
-    
-    function updateFlowCalculation() {
-        vaResultDetails.innerHTML = '';
-        vaSupportPercentEl.innerHTML = '';
-        const weight = parseFloat(flowWeightSlider.value);
-        const height = parseFloat(flowHeightSlider.value);
-        const rate = parseInt(flowRateSlider.value);
-        
-        calculatedFlowL = calculateTargetFlow(ecmoMode, weight, height, rate);
-
-        if (calculatedFlowL === null) {
-            flowResultEl.textContent = '-';
-            return;
-        }
-
-        if (ecmoMode === 'VA') {
-            const bsa = 0.007184 * Math.pow(height, 0.725) * Math.pow(weight, 0.425);
-            const cardiacOutput = bsa * 3.0;
-            vaResultDetails.innerHTML = `<span>Est. BSA: ${bsa.toFixed(2)} m²</span> &bull; <span>Est. CO: ${cardiacOutput.toFixed(2)} L/min</span>`;
-            
-            const currentFlow = parseFloat(flowCurrentSlider.value);
-            const supportPercent = (currentFlow / cardiacOutput) * 100;
-            vaSupportPercentEl.innerHTML = `Providing <strong class="text-green-600">${supportPercent.toFixed(0)}%</strong> cardiac support.`;
-        }
-        
-        flowResultEl.textContent = `${calculatedFlowL.toFixed(2)} L/min`;
-    }
-
-    const populateCannulaSelects = () => {
-        ['drainage', 'return'].forEach(type => {
-            const selectEl = type === 'drainage' ? drainageSelect : returnSelect;
-            const cannulas = type === 'drainage' ? drainageCannulas : returnCannulas;
-            const brands = [...new Set(cannulas.map(c => c.brand))];
-            
-            selectEl.innerHTML = '';
-            brands.forEach(brand => {
-                const optgroup = document.createElement('optgroup');
-                optgroup.label = brand;
-                cannulas.filter(c => c.brand === brand).forEach(cannula => {
-                    const option = new Option(`${cannula.size} (${cannula.brand.split(' ')[0]})`, cannula.key);
-                    optgroup.appendChild(option);
-                });
-                selectEl.appendChild(optgroup);
-            });
-        });
-    };
-    
-    function updateCannulaSizing() {
-        const weight = parseFloat(cannulaWeightSlider.value);
-        if (!cannulaFlowInput.value) {
-            cannulaFlowInput.value = ((weight * 60) / 1000).toFixed(2);
-        }
-        
-        const operatingFlow = parseFloat(cannulaFlowInput.value) || 0;
-        const minFlow = (weight * 50) / 1000;
-        const maxFlow = (weight * 70) / 1000;
-        const targetFlow = (weight * 60) / 1000;
-        
-        generateSVGGraph(drainageGraphContainer, drainageCannulas, drainageSelect.value, operatingFlow, minFlow, maxFlow, targetFlow, { title: 'Drainage Pressure-Flow', yMax: 0, yMin: -100, limit: -60, yAxisLabel: 'Pressure (-mmHg)' });
-        generateSVGGraph(returnGraphContainer, returnCannulas, returnSelect.value, operatingFlow, minFlow, maxFlow, targetFlow, { title: 'Return Pressure-Flow', yMax: 300, yMin: 0, limit: 160, yAxisLabel: 'Pressure (+mmHg)' });
-    }
-
-    function setHeparinProtocol(protocol) {
-        heparinProtocol = protocol;
-        [heparinAPTTBtn, heparinACTBtn, heparinXaBtn].forEach(btn => btn.classList.remove('active'));
-        
-        const labSlider = heparinLabValueSlider;
-        let settings = {};
-        
-        const therapeuticRow = protocols[heparinProtocol].find(p => p.change === 0 && p.bolus === 0);
-        const therapeuticRange = therapeuticRow ? therapeuticRow.range : [0,0];
-
-        if (protocol === 'aPTT') {
-            heparinAPTTBtn.classList.add('active');
-            settings = { min: 30, max: 150, value: therapeuticRange[0] || 65, step: 1 };
-        } else if (protocol === 'ACT') {
-            heparinACTBtn.classList.add('active');
-            settings = { min: 100, max: 300, value: therapeuticRange[0] || 180, step: 1 };
-        } else { // Xa
-            heparinXaBtn.classList.add('active');
-            settings = { min: 0, max: 1.5, value: therapeuticRange[0] || 0.5, step: 0.01 };
-        }
-        
-        Object.assign(labSlider, settings);
-        heparinLabValue.textContent = `${parseFloat(labSlider.value).toFixed(protocol === 'Xa' ? 2 : 0)}`;
-        labTypeLabel.textContent = protocol.toUpperCase();
-        
-        heparinTargetMinInput.value = therapeuticRange[0];
-        heparinTargetMaxInput.value = therapeuticRange[1];
-        const step = protocol === 'Xa' ? '0.01' : '1';
-        heparinTargetMinInput.step = step;
-        heparinTargetMaxInput.step = step;
-
-        updateHeparinCalculation();
-    }
-
-    function updateHeparinCalculation() {
-        const weight = parseFloat(heparinWeightSlider.value);
-        const labValue = parseFloat(heparinLabValueSlider.value);
-        const units = parseFloat(heparinUnitsInput.value);
-        const volume = parseFloat(heparinVolumeInput.value);
-        const currentRateInput = parseFloat(heparinCurrentRateInput.value);
-        const rateUnit = heparinRateUnitSelect.value;
-        const newMin = parseFloat(heparinTargetMinInput.value);
-        const newMax = parseFloat(heparinTargetMaxInput.value);
-        
-        if ([weight, labValue, units, volume, currentRateInput, newMin, newMax].some(isNaN) || volume === 0) {
-            heparinResultContainer.classList.add('hidden');
-            return;
-        }
-
-        const currentProtocolData = JSON.parse(JSON.stringify(protocols[heparinProtocol]));
-        const therapeuticRow = currentProtocolData.find(p => p.change === 0 && p.bolus === 0);
-        if (therapeuticRow) therapeuticRow.range = [newMin, newMax];
-
-        const concentration = units / volume;
-        let currentRateInUnits = rateUnit === 'units' ? currentRateInput : (currentRateInput * concentration) / weight;
-
-        const action = currentProtocolData.find(p => labValue >= p.range[0] && labValue <= p.range[1]);
-        
-        if (!action) {
-             heparinActionEl.textContent = 'Value out of protocol range.';
-             heparinNewRateEl.innerHTML = '-';
-             heparinResultContainer.classList.remove('hidden');
-             return;
-        }
-
-        let actionText = [];
-        if (action.bolus > 0) actionText.push(`Bolus ${(action.bolus * weight).toFixed(0)} units`);
-        if (action.hold > 0) actionText.push(`Hold infusion for ${action.hold} min`);
-        if (action.bolus > 0 || action.hold > 0) actionText.push('then');
-        if (action.change !== 0) {
-             actionText.push(`${action.change > 0 ? 'Increase' : 'Decrease'} rate by ${Math.abs(action.change)} u/kg/hr.`);
-        }
-        if (action.change === 0 && action.bolus === 0) actionText = ["No change to infusion rate."];
-
-        heparinActionEl.textContent = actionText.join(' ');
-        
-        const newRateInUnits = currentRateInUnits + action.change;
-        const newRateInMl = (newRateInUnits * weight) / concentration;
-        heparinNewRateEl.innerHTML = `${newRateInUnits.toFixed(1)} u/kg/hr <span class="text-sm text-gray-600 font-normal">(${newRateInMl.toFixed(1)} mL/hr)</span>`;
-
-        heparinResultContainer.classList.remove('hidden');
-    }
-
-    function populateOxygenatorSelect() {
-        oxyModelSelect.innerHTML = '';
-        for (const [key, value] of Object.entries(oxygenatorSpecs)) {
-            oxyModelSelect.add(new Option(value.name, key));
-        }
-    }
-
-    function calculateOxygenContent(hb, sat, po2) {
-        if(isNaN(hb) || isNaN(sat) || isNaN(po2)) return null;
-        return (hb * 1.34 * (sat / 100)) + (po2 * 0.003);
-    }
-    
-    function syncSvo2Sliders(sourceSlider) {
-        const value = sourceSlider.value;
-        const text = `${parseFloat(value).toFixed(0)} %`;
-        oxySvo2Slider.value = value;
-        oxyRecircSvo2Slider.value = value;
-        oxySvo2Value.textContent = text;
-        oxyRecircSvo2Value.textContent = text;
-        updateOxygenationCalculations();
-    }
-    
-    function updateOxygenationCalculations() {
-        const flow = parseFloat(oxyFlowSlider.value);
-        const hb = parseFloat(oxyHbSlider.value);
-        const sao2 = parseFloat(oxySao2Slider.value);
-        const pao2 = parseFloat(oxyPao2Input.value);
-        const svo2 = parseFloat(oxySvo2Slider.value);
-        const pvo2 = parseFloat(oxyPvo2Input.value);
-        
-        const preSat = parseFloat(oxyPreSatSlider.value);
-        const postSat = parseFloat(oxyPostSatSlider.value);
-        
-        const currentTmp = parseFloat(oxyTmpInput.value);
-        const prePao2 = parseFloat(oxyPrePao2Input.value);
-        const postPao2 = parseFloat(oxyPostPao2Input.value);
-        const selectedModelKey = oxyModelSelect.value;
-        const modelSpecs = oxygenatorSpecs[selectedModelKey];
-
-        const cao2 = calculateOxygenContent(hb, sao2, pao2);
-        const cvo2 = calculateOxygenContent(hb, svo2, pvo2);
-        
-        const do2 = (cao2 && flow) ? flow * cao2 * 10 : null;
-        oxyDo2ResultEl.innerHTML = `${do2 ? do2.toFixed(0) : '-'} <span class="text-base font-normal">mL/min</span>`;
-        
-        const vo2 = (cao2 && cvo2 && flow) ? flow * (cao2 - cvo2) * 10 : null;
-        oxyVo2ResultEl.innerHTML = `${vo2 ? vo2.toFixed(0) : '-'} <span class="text-base font-normal">mL/min</span>`;
-
-        const oer = (cao2 && cvo2 && cao2 > 0) ? ((cao2 - cvo2) / cao2) * 100 : null;
-        oxyOerResultEl.innerHTML = `${oer ? oer.toFixed(1) : '-'} <span class="text-base font-normal">%</span>`;
-        
-        let recirc = null;
-        if (!isNaN(preSat) && !isNaN(postSat) && !isNaN(svo2) && (postSat - svo2) > 0) {
-             recirc = ((preSat - svo2) / (postSat - svo2)) * 100;
-        }
-        oxyRecirculationResultEl.textContent = `${recirc !== null ? Math.max(0, recirc).toFixed(1) : '-'} %`;
-
-        const oxygenTransfer = (flow && hb && !isNaN(postSat) && !isNaN(preSat)) ? (flow * 1.34 * hb * ((postSat - preSat) / 100)) * 10 : null;
-        oxyTransferResultEl.textContent = `${oxygenTransfer ? oxygenTransfer.toFixed(0) : '-'}`;
-        
-        let healthHTML = '';
-        if (modelSpecs) {
-            let tmpStatus = 'Normal';
-            let tmpColor = 'text-green-600';
-            if (currentTmp >= modelSpecs.changeThreshold) {
-                tmpStatus = 'Consider Change';
-                tmpColor = 'text-red-600';
-            } else if (currentTmp >= modelSpecs.watchThreshold) {
-                tmpStatus = 'Watch';
-                tmpColor = 'text-yellow-600';
-            }
-            healthHTML += `<h4 class="font-semibold text-gray-800 text-sm">TMP Status</h4><p class="text-xl font-bold ${tmpColor}">${isNaN(currentTmp) ? '-' : tmpStatus}</p><p class="text-xs text-gray-500">Normal: ${modelSpecs.tmpRange[0]}-${modelSpecs.tmpRange[1]} mmHg</p>`;
-        }
-        if(!isNaN(prePao2) && !isNaN(postPao2)) {
-            const gradient = postPao2 - prePao2;
-            healthHTML += `<h4 class="font-semibold text-gray-800 text-sm mt-2">PaO₂ Gradient</h4><p class="text-xl font-bold text-accent">${gradient.toFixed(0)} mmHg</p><p class="text-xs text-gray-500">Expected Post: >${modelSpecs ? modelSpecs.postO2 : 'N/A'} mmHg</p>`;
-        }
-        oxyHealthResultEl.innerHTML = healthHTML;
-    }
-    
-    addSliderListener(flowWeightSlider, flowWeightValue, 'kg', 0, updateFlowCalculation);
-    addSliderListener(flowHeightSlider, flowHeightValue, 'cm', 0, updateFlowCalculation);
-    addSliderListener(flowRateSlider, flowRateValue, 'ml/kg/min', 0, updateFlowCalculation);
-    addSliderListener(flowCurrentSlider, flowCurrentValue, 'L/min', 1, updateFlowCalculation);
-    flowVVModeBtn.addEventListener('click', () => setFlowMode('VV'));
-    flowVAModeBtn.addEventListener('click', () => setFlowMode('VA'));
-
-    addSliderListener(cannulaWeightSlider, cannulaWeightValue, 'kg', 0, updateCannulaSizing);
-    [cannulaFlowInput, drainageSelect, returnSelect].forEach(el => el.addEventListener('input', updateCannulaSizing));
-    
-    addSliderListener(heparinWeightSlider, heparinWeightValue, 'kg', 0, updateHeparinCalculation);
-    heparinLabValueSlider.addEventListener('input', e => { 
-        const decimals = heparinProtocol === 'Xa' ? 2 : 0;
-        heparinLabValue.textContent = parseFloat(e.target.value).toFixed(decimals); 
-        updateHeparinCalculation(); 
-    });
-    [heparinUnitsInput, heparinVolumeInput, heparinCurrentRateInput, heparinRateUnitSelect, heparinTargetMinInput, heparinTargetMaxInput].forEach(el => el.addEventListener('input', updateHeparinCalculation));
-    heparinAPTTBtn.addEventListener('click', () => setHeparinProtocol('aPTT'));
-    heparinACTBtn.addEventListener('click', () => setHeparinProtocol('ACT'));
-    heparinXaBtn.addEventListener('click', () => setHeparinProtocol('Xa'));
-
-    const oxyInputs = [ oxyPao2Input, oxyPvo2Input, oxyModelSelect, oxyTmpInput, oxyPrePao2Input, oxyPostPao2Input ];
-    oxyInputs.forEach(el => el.addEventListener('input', updateOxygenationCalculations));
-    addSliderListener(oxyFlowSlider, oxyFlowValue, 'L/min', 1, updateOxygenationCalculations);
-    addSliderListener(oxyHbSlider, oxyHbValue, 'g/dL', 1, updateOxygenationCalculations);
-    addSliderListener(oxyPreSatSlider, oxyPreSatValue, '%', 0, updateOxygenationCalculations);
-    addSliderListener(oxyPostSatSlider, oxyPostSatValue, '%', 1, updateOxygenationCalculations);
-    addSliderListener(oxySao2Slider, oxySao2Value, '%', 0, updateOxygenationCalculations);
-    
-    oxySvo2Slider.addEventListener('input', () => syncSvo2Sliders(oxySvo2Slider));
-    oxyRecircSvo2Slider.addEventListener('input', () => syncSvo2Sliders(oxyRecircSvo2Slider));
-
-    function syncToCannulaTab() {
-        cannulaWeightSlider.value = flowWeightSlider.value;
-        cannulaWeightSlider.dispatchEvent(new Event('input', { bubbles: true }));
-        if(calculatedFlowL) cannulaFlowInput.value = calculatedFlowL.toFixed(2);
-        updateCannulaSizing();
-    }
-    
-    function syncToOxygenationTab() {
-        if (calculatedFlowL) {
-            oxyFlowSlider.value = calculatedFlowL;
-            oxyFlowSlider.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        updateOxygenationCalculations();
-    }
-    
-    populateCannulaSelects();
-    populateOxygenatorSelect();
-    setFlowMode('VV');
-    setHeparinProtocol('aPTT');
-    updateCannulaSizing();
-    updateOxygenationCalculations();
+/* ---------- slider ↔ number box binding ---------- */
+document.querySelectorAll('input[type=range]').forEach(r => {
+  fill(r); r.addEventListener('input',()=>fill(r));
+  const b = boxFor(r.id); if(!b) return;
+  b.value = (+r.value).toFixed(decOf(r.id));
+  b.step = r.step;
+  r.addEventListener('input', () => { b.value=(+r.value).toFixed(decOf(r.id)); onInput(r.id); });
+  b.addEventListener('input', () => { const v=parseFloat(b.value); if(!isNaN(v)) { r.value=v; fill(r); } onInput(r.id); });
 });
+document.querySelectorAll('input:not([type=range]):not(.num), select').forEach(el => el.addEventListener('input', () => onInput(el.id)));
+function onInput(id){ if(id==='qe') state.qeTouched=true; if(id==='opFlow') state.opTouched=true; if(id==='vvQe') state.vvTouched=true; recalc(); }
 
-// --- HELPER FUNCTIONS --- //
-function generateSVGGraph(container, data, activeKey, opFlow, minFlow, maxFlow, targetFlow, options) {
-    const { title, yMax, yMin, limit, yAxisLabel } = options;
-    const xMax = 8;
-    const width = 500, height = 280, margin = { top: 40, right: 40, bottom: 40, left: 50 };
-    
-    const xScale = val => margin.left + (val / xMax * (width - margin.left - margin.right));
-    const yScale = val => (height - margin.bottom) - ((val - yMin) / (yMax - yMin) * (height - margin.top - margin.bottom));
+/* ---------- tabs & segmented controls ---------- */
+document.querySelectorAll('.tabs button').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active', x===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='p-'+t.dataset.tab));
+  recalc();
+  if(window.matchMedia('(max-width:720px)').matches){ const top=$('tabsAnchor').getBoundingClientRect().top+window.scrollY-8; if(window.scrollY>top) window.scrollTo({top,behavior:'smooth'}); }
+}));
+document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => {
+  state.mode=b.dataset.mode;
+  document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('active',x===b));
+  const vv = state.mode==='VV';
+  $('vvIn').classList.toggle('hidden',!vv); $('vaIn').classList.toggle('hidden',vv);
+  $('vvF').classList.toggle('hidden',!vv);  $('vaF').classList.toggle('hidden',vv);
+  recalc();
+}));
+document.querySelectorAll('#testSeg button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#testSeg button').forEach(x=>x.classList.toggle('active',x===b));
+  setTest(b.dataset.test);
+}));
+$('useTarget').addEventListener('click', () => { state.opTouched=false; recalc(); });
+$('vvUseTarget').addEventListener('click', () => { state.vvTouched=false; recalc(); });
+document.querySelectorAll('#sexSeg button').forEach(b => b.addEventListener('click', () => {
+  state.sex=b.dataset.sex; document.querySelectorAll('#sexSeg button').forEach(x=>x.classList.toggle('active',x===b)); recalc(); }));
+$('stPill').addEventListener('click', () => { const open=$('stPanel').classList.toggle('hidden')===false; $('stPill').setAttribute('aria-expanded',open); });
 
-    const curves = data.map(cannula => {
-        let pathData = "M";
-        for (let i = 0; i <= xMax; i += 0.1) {
-            let pressure = cannula.pressureFunc(i);
-            if (pressure >= yMin && pressure <= yMax) {
-                pathData += `${xScale(i)},${yScale(pressure)} L`;
-            }
-        }
-        const curveClass = cannula.key === activeKey ? 'curve-active' : 'curve-inactive';
-        return `<path d="${pathData.slice(0, -2)}" class="curve ${curveClass}" />`;
-    }).join('');
-
-    let opPointCircle = '';
-    const selectedCannula = data.find(c => c.key === activeKey);
-    if (opFlow > 0 && selectedCannula) {
-        const pressure = selectedCannula.pressureFunc(opFlow);
-        if (pressure >= yMin && pressure <= yMax) {
-            opPointCircle = `<circle cx="${xScale(opFlow)}" cy="${yScale(pressure)}" class="op-point visible" />`;
-        }
-    }
-    
-    const targetFlowColumn = `
-        <rect x="${xScale(minFlow)}" y="${margin.top}" width="${xScale(maxFlow) - xScale(minFlow)}" height="${height - margin.top - margin.bottom}" class="target-flow-range" />
-        <text x="${xScale(minFlow)}" y="${margin.top - 5}" class="axis-label" text-anchor="start">${minFlow.toFixed(1)}</text>
-        <text x="${xScale(maxFlow)}" y="${margin.top - 5}" class="axis-label" text-anchor="end">${maxFlow.toFixed(1)}</text>
-    `;
-    
-    const targetFlowLine = `<line x1="${xScale(targetFlow)}" y1="${margin.top}" x2="${xScale(targetFlow)}" y2="${height - margin.bottom}" class="target-flow-line" />`;
-    const xGridLines = Array.from({ length: Math.floor(xMax / 2) + 1 }, (_, i) => `<line x1="${xScale(i * 2)}" y1="${margin.top}" x2="${xScale(i * 2)}" y2="${height - margin.bottom}" class="grid-line" />`).join('');
-    const numYGrid = 5;
-    const yGridLines = Array.from({ length: numYGrid + 1 }, (_, i) => {
-        const yVal = yMin + i * ((yMax - yMin) / numYGrid);
-        return `<line x1="${margin.left}" y1="${yScale(yVal)}" x2="${width - margin.right}" y2="${yScale(yVal)}" class="grid-line" />`
-    }).join('');
-    const xLabels = Array.from({ length: Math.floor(xMax / 2) + 1 }, (_, i) => `<text x="${xScale(i * 2)}" y="${height - margin.bottom + 15}" text-anchor="middle" class="axis-label">${i * 2}</text>`).join('');
-    const yLabels = Array.from({ length: numYGrid + 1 }, (_, i) => {
-        const yVal = yMin + i * ((yMax - yMin) / numYGrid);
-        return `<text x="${margin.left - 8}" y="${yScale(yVal) + 4}" text-anchor="end" class="axis-label">${yVal.toFixed(0)}</text>`
-    }).join('');
-    const axisTitles = `<text x="${width / 2}" y="${height - 5}" text-anchor="middle" class="axis-label font-semibold">Flow (L/min)</text>
-                       <text x="${-(height / 2)}" y="15" transform="rotate(-90)" text-anchor="middle" class="axis-label font-semibold">${yAxisLabel}</text>
-                       <text x="${width / 2}" y="${margin.top - 15}" text-anchor="middle" class="text-lg font-semibold text-gray-800">${title}</text>`;
-    const limitLine = `<line x1="${margin.left}" y1="${yScale(limit)}" x2="${width - margin.right}" y2="${yScale(limit)}" class="limit-line" />
-                       <text x="${width - margin.right + 5}" y="${yScale(limit) + 4}" class="text-xs fill-red-500">${limit} mmHg</text>`;
-
-    const svg = `
-        <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-            ${xGridLines} ${yGridLines}
-            ${targetFlowColumn}
-            ${targetFlowLine}
-            <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}" class="axis-line" />
-            <line x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}" class="axis-line" />
-            ${curves}
-            ${opPointCircle}
-            ${limitLine}
-            ${xLabels} ${yLabels}
-            ${axisTitles}
-        </svg>`;
-    container.innerHTML = svg;
+/* ---------- patient ---------- */
+const bsaOf = (w,h,m='dubois') => !(w>0&&h>0) ? NaN : m==='mosteller' ? Math.sqrt(h*w/3600) : 0.007184*Math.pow(h,0.725)*Math.pow(w,0.425);
+/* Devine 1974: 50 kg (M) / 45.5 kg (F) + 2.3 kg per inch above 60 in. Not defined below 152.4 cm. */
+const ibwOf = (h,sex) => h>=152.4 ? (sex==='F'?45.5:50) + (2.3/2.54)*(h-152.4) : NaN;
+const adjOf = (w,ibw) => isFinite(ibw) && w>ibw ? ibw + 0.4*(w-ibw) : w;
+function body(){
+  const w=val('wt'), h=val('ht'), sex=state.sex, m=$('bsaSel').value, pick=$('dwSel').value;
+  const bsa=bsaOf(w,h,m), ibw=ibwOf(h,sex), adj=adjOf(w,ibw), bmi=w/Math.pow(h/100,2);
+  let dw=w, used='actual';
+  if(pick==='ideal' && isFinite(ibw)){ dw=ibw; used='ideal'; }
+  if(pick==='adjusted' && isFinite(ibw)){ dw=adj; used='adjusted'; }
+  return {w,h,bsa,ibw,adj,bmi,dw,used,pick,m};
 }
-</script>
 
+/* ---------- 1. FLOW ---------- */
+function calcFlow(w,bsa){
+  let target, kv=[], note='';
+  if(state.mode==='VV'){
+    const rate=val('vvRate');
+    target = w*rate/1000;
+    const pco = bsa*3.0;
+    kv.push(['Flow index', fmt(target/bsa,2), 'L/min/m²']);
+    kv.push(['Predicted resting CO', fmt(pco,1), 'L/min']);
+    kv.push(['Flow as % of predicted CO', fmt(target/pco*100,0), '%']);
+    note = 'With little native lung function, ECMO flow of roughly ≥ 60 % of cardiac output is usually needed for adequate arterial oxygenation; recirculation and high cardiac output raise the requirement.';
+  } else {
+    const ci=val('ci'), frac=val('supp')/100, cur=val('vaCur');
+    const pco = bsa*ci; target = pco*frac;
+    const sp = cur/pco*100;
+    kv.push(['Predicted resting CO', fmt(pco,2), 'L/min']);
+    kv.push(['Flow index', fmt(target/bsa,2), 'L/min/m²']);
+    kv.push(['Per kg', fmt(target*1000/w,0), 'mL/kg/min']);
+    kv.push(['Current flow vs predicted CO', fmt(sp,0), '%']);
+    note = 'Higher VA flow raises LV afterload; watch pulse pressure, aortic valve opening and LV distension. In peripheral VA, check right-hand saturation for differential hypoxaemia.';
+  }
+  state.target = target;
+  $('flowOut').innerHTML = isFinite(target) ? `${target.toFixed(2)} <small>L/min</small>` : '—';
+  $('flowKV').innerHTML = kv.map(([k,v,u])=>`<div><div class="k">${k}</div><div class="v">${v} <small>${u}</small></div></div>`).join('');
+  $('flowNote').textContent = note;
+}
+
+/* ---------- 2. CANNULA (manufacturer data, digitised) ---------- */
+/* CANNULA_DATA: pressure drop (mmHg, magnitude) vs flow (L/min), water at room temperature.
+   Digitised from Getinge and Medtronic published charts by IMhongkeun/perfusion-tools
+   (data/cannula-pressure-drop.json, schema 1.1.0, updated 2026-10-22). See licence notice below. */
+const CANNULA_DATA = {"D":[{"g":"Getinge Avalon Elite dual-lumen (drainage lumen)","fr":13,"lab":"13 Fr","p":[[0,0],[0.04,1.2],[0.14,2.6],[0.23,7.8],[0.32,13.8],[0.42,21.2],[0.51,29.8],[0.61,39.8],[0.7,51],[0.79,63.4],[0.89,77.6],[0.98,93],[1.08,110],[1.16,126.8],[1.22,140.4],[1.25,148.8]],"id":"D0"},{"g":"Getinge Avalon Elite dual-lumen (drainage lumen)","fr":16,"lab":"16 Fr","p":[[0,0],[0.04,1.2],[0.14,2.4],[0.24,3.6],[0.32,4.6],[0.41,7.2],[0.51,11.4],[0.61,15],[0.7,20.1],[0.79,25.4],[0.89,31.1],[0.98,37.5],[1.07,44.2],[1.17,51.4],[1.26,59.3],[1.36,67.5],[1.45,76.4],[1.54,85.8],[1.64,95.7],[1.73,106.7],[1.82,117.9],[1.92,130],[2.01,143.3],[2.06,148.8]],"id":"D1"},{"g":"Getinge Avalon Elite dual-lumen (drainage lumen)","fr":19,"lab":"19 Fr","p":[[0,0],[0.02,0.9],[0.11,2],[0.2,2.4],[0.3,3.3],[0.4,4.2],[0.49,5.4],[0.58,7.9],[0.67,10],[0.77,12.6],[0.86,16],[0.96,19.2],[1.05,22.7],[1.14,26.5],[1.24,30.6],[1.33,34.9],[1.42,39.6],[1.52,44.6],[1.61,49.5],[1.7,55.1],[1.8,60.8],[1.89,66.8],[1.98,73],[2.08,79.5],[2.17,86.4],[2.27,93.6],[2.36,101],[2.45,108.4],[2.5,112.2]],"id":"D2"},{"g":"Getinge Avalon Elite dual-lumen (drainage lumen)","fr":20,"lab":"20 Fr","p":[[0,0],[0.11,1.6],[0.28,2.3],[0.44,6.5],[0.57,10.6],[0.68,14.8],[0.81,19.5],[0.92,24.2],[1.01,27.4],[1.09,31.3],[1.19,36.7],[1.29,41.4],[1.37,46.6],[1.46,52],[1.55,57.4],[1.63,63.9],[1.73,69.3],[1.81,75.1],[1.91,82],[2,89.3],[2.08,95.8],[2.17,102.9],[2.26,110.6],[2.36,118.9],[2.44,126.9],[2.52,134.9],[2.6,142.3],[2.65,148.6]],"id":"D3"},{"g":"Getinge Avalon Elite dual-lumen (drainage lumen)","fr":23,"lab":"23 Fr","p":[[0,0],[0.07,1.1],[0.23,1.8],[0.41,3.3],[0.57,5.3],[0.75,8.8],[0.95,13],[1.12,17.3],[1.3,22.6],[1.48,28.4],[1.66,34.4],[1.84,41.1],[2.02,48.1],[2.2,55.8],[2.38,63.8],[2.56,72.1],[2.74,80.7],[2.92,90],[3.1,99.4],[3.27,109.3],[3.45,119.6],[3.63,130.4],[3.81,141.9],[3.91,147.4]],"id":"D4"},{"g":"Getinge Avalon Elite dual-lumen (drainage lumen)","fr":27,"lab":"27 Fr","p":[[0,0],[0.11,1.6],[0.29,1.5],[0.47,1.9],[0.65,2.2],[0.83,2.4],[1.01,3.1],[1.19,5.8],[1.36,8.2],[1.55,9.9],[1.73,11.9],[1.91,15.6],[2.09,18.7],[2.27,22.1],[2.45,25.8],[2.63,29.7],[2.8,33.9],[2.98,38.2],[3.16,42.8],[3.34,47.5],[3.52,52.3],[3.7,57.2],[3.88,62.3],[4.06,67.5],[4.24,72.8],[4.42,78.1],[4.6,83.7],[4.78,89],[4.94,94.3],[5.02,96.7]],"id":"D5"},{"g":"Getinge Avalon Elite dual-lumen (drainage lumen)","fr":31,"lab":"31 Fr","p":[[0,0],[0.07,1.1],[0.23,1.6],[0.41,1.6],[0.59,2.2],[0.77,2.2],[0.96,2.3],[1.14,2.9],[1.33,2.8],[1.5,4],[1.66,5],[1.84,6.2],[2.02,7.5],[2.2,8.8],[2.38,10.2],[2.56,11.8],[2.74,13.5],[2.92,15.5],[3.1,17.4],[3.28,19.5],[3.46,21.8],[3.64,24.3],[3.82,26.7],[4,29.4],[4.18,32.3],[4.35,35.3],[4.53,38.4],[4.71,41.7],[4.89,45.1],[5.07,48.8],[5.25,52.5],[5.43,56.5],[5.61,60.8],[5.79,65.1],[6,68.8]],"id":"D6"},{"g":"Getinge HLS venous","fr":19,"lab":"19 Fr \u00b7 38 cm (PVS 1938)","p":[[0,0],[0.08,0.6],[0.25,0.9],[0.43,1.7],[0.6,2.7],[0.78,3.8],[0.97,5.8],[1.13,8.2],[1.34,10.3],[1.49,13.1],[1.67,15.5],[1.87,19.8],[2.04,23.7],[2.22,27.8],[2.39,31.9],[2.57,36.7],[2.75,41.6],[2.92,46.7],[3.1,52.1],[3.28,57.8],[3.46,63.6],[3.63,69.8],[3.81,76.1],[3.99,82.8],[4.17,89.6],[4.34,96.6],[4.52,103.9],[4.7,111.3],[4.87,119],[5.05,126.9],[5.23,135.4],[5.4,143.5],[5.56,151.7],[5.72,160],[5.88,168.5],[6.03,176.7],[6.19,185.1],[6.34,193.7],[6.44,199.1]],"id":"D7"},{"g":"Getinge HLS venous","fr":21,"lab":"21 Fr \u00b7 38 cm (PVS 2138)","p":[[0,0],[0.08,0.6],[0.25,0.9],[0.43,1.3],[0.61,1.8],[0.79,2.7],[0.96,4.2],[1.14,5.5],[1.32,7.2],[1.49,9.3],[1.67,11.5],[1.86,13.1],[2.02,15.5],[2.21,17.5],[2.38,20.2],[2.56,22.9],[2.73,26],[2.91,29.2],[3.11,32.9],[3.28,36.4],[3.46,40.3],[3.65,44.3],[3.81,48.1],[3.98,52.2],[4.16,56.9],[4.34,61.8],[4.52,66.5],[4.7,71.6],[4.87,76.8],[5.05,82],[5.23,87.3],[5.41,92.7],[5.58,98.2],[5.76,103.8],[5.94,109.7],[6.11,115.8],[6.29,122.2],[6.47,128.8],[6.64,135.7],[6.82,142.8],[6.95,148]],"id":"D8"},{"g":"Getinge HLS venous","fr":21,"lab":"21 Fr \u00b7 55 cm (PVL 2155)","p":[[0,0],[0.27,0.9],[0.45,1.3],[0.62,1.9],[0.8,3],[0.98,4.4],[1.16,6.2],[1.33,8.4],[1.51,9.7],[1.69,11.7],[1.87,14.8],[2.05,17.4],[2.22,20.1],[2.4,23.3],[2.57,26.6],[2.75,30.2],[2.92,33.9],[3.11,38],[3.28,41.7],[3.46,45.8],[3.62,49.9],[3.81,54.6],[3.99,59.5],[4.17,64.4],[4.34,69.5],[4.52,74.9],[4.7,80.4],[4.87,86.3],[5.05,92.4],[5.23,98.6],[5.41,105],[5.58,111.4],[5.76,117.8],[5.94,124.4],[6.11,131.2],[6.29,138.1],[6.47,145.3],[6.64,153.1],[6.81,160.9],[6.95,167.9]],"id":"D9"},{"g":"Getinge HLS venous","fr":23,"lab":"23 Fr \u00b7 38 cm (PVS 2338)","p":[[0,0],[0.08,0.6],[0.25,0.9],[0.43,1.3],[0.61,1.8],[0.79,2.8],[0.96,3.8],[1.14,4.8],[1.32,5.4],[1.49,6.1],[1.67,7.5],[1.84,9],[2.02,10.3],[2.2,12],[2.38,13.7],[2.57,16.2],[2.74,17.5],[2.91,20.3],[3.1,22.3],[3.28,24.5],[3.46,26.9],[3.64,29.5],[3.81,32],[3.99,34.8],[4.17,37.6],[4.35,40.7],[4.52,43.7],[4.7,47],[4.87,50.2],[5.05,53.6],[5.23,57.2],[5.41,61],[5.59,65],[5.76,68.9],[5.94,73.2],[6.11,77.4],[6.28,81.5],[6.47,86.3],[6.65,91],[6.82,95.3],[6.95,98.6]],"id":"D10"},{"g":"Getinge HLS venous","fr":23,"lab":"23 Fr \u00b7 55 cm (PVL 2355)","p":[[0,0],[0.09,0.6],[0.27,0.9],[0.45,1.3],[0.62,1.9],[0.8,3],[0.98,4],[1.16,5.1],[1.33,6.2],[1.5,7.2],[1.69,9],[1.86,10],[2.04,11.7],[2.21,13.2],[2.39,16.1],[2.56,18.2],[2.75,20.8],[2.93,23.3],[3.11,25.9],[3.28,28.6],[3.46,31.4],[3.64,34.6],[3.81,37.5],[3.99,40.6],[4.16,43.9],[4.34,47.4],[4.52,50.7],[4.7,54.5],[4.89,58.4],[5.07,62.2],[5.24,66],[5.42,70.1],[5.61,74.5],[5.78,78.7],[5.95,83.4],[6.14,88.5],[6.31,93.3],[6.49,98.6],[6.66,103.8],[6.84,109.1],[6.96,112.9]],"id":"D11"},{"g":"Getinge HLS venous","fr":25,"lab":"25 Fr \u00b7 38 cm (PVS 2538)","p":[[0,0],[0.14,0.7],[0.32,1],[0.5,1.5],[0.67,2],[0.85,2.5],[1.03,3.1],[1.2,3.9],[1.38,4.6],[1.56,5.9],[1.74,6.8],[1.91,7.6],[2.09,8.5],[2.26,9.3],[2.43,10.3],[2.64,12],[2.81,13.4],[2.99,14.9],[3.17,16.5],[3.36,18.8],[3.54,20.8],[3.71,22.1],[3.89,24.1],[4.07,26.1],[4.25,28.2],[4.42,30.4],[4.6,32.6],[4.77,34.7],[4.95,37.1],[5.14,39.7],[5.3,42],[5.49,44.9],[5.66,47.6],[5.84,50.4],[6.01,53.2],[6.21,56.5],[6.39,59.7],[6.56,62.8],[6.75,66.2],[6.91,69.3]],"id":"D12"},{"g":"Getinge HLS venous","fr":25,"lab":"25 Fr \u00b7 55 cm (PVL 2555)","p":[[0,0],[0.11,0.6],[0.29,1],[0.46,1.7],[0.64,2.3],[0.82,3],[0.98,3.8],[1.17,4.4],[1.35,5],[1.53,5.9],[1.7,6.7],[1.88,7.7],[2.06,9],[2.23,10],[2.41,11.7],[2.62,13],[2.8,14.7],[2.97,16.6],[3.18,19],[3.37,20.8],[3.55,22.9],[3.73,24.9],[3.91,27],[4.09,29.1],[4.26,31.4],[4.43,33.7],[4.61,36.1],[4.79,38.8],[4.96,41.5],[5.16,44.6],[5.32,47.3],[5.5,50.5],[5.68,53.7],[5.86,57],[6.03,60.1],[6.21,63.6],[6.38,66.9],[6.56,70.6],[6.74,74.2],[6.9,77.6]],"id":"D13"},{"g":"Getinge HLS venous","fr":29,"lab":"29 Fr \u00b7 55 cm (PVL 2955)","p":[[0,0],[0.08,0.6],[0.25,0.9],[0.43,1.3],[0.61,1.8],[0.98,2.1],[1.14,2.1],[1.32,2.1],[1.48,2.7],[1.67,3.1],[1.85,4.1],[2.03,5.7],[2.2,6.2],[2.4,6.9],[2.59,7.9],[2.78,8.8],[2.95,9.7],[3.14,10.8],[3.33,11.9],[3.49,12.8],[3.68,14],[3.91,15.7],[4.09,17.1],[4.27,18.8],[4.45,20.5],[4.64,22.4],[4.81,24.2],[5.01,26.1],[5.18,27.7],[5.37,29.8],[5.56,31.7],[5.74,33.5],[5.92,35.4],[6.11,37.4],[6.28,39.2],[6.46,41.2],[6.64,43.2],[6.82,45.3],[6.95,46.8]],"id":"D14"},{"g":"Medtronic Bio-Medicus multi-stage","fr":19,"lab":"19 Fr \u00b7 60 cm (96880-019)","p":[[0.49,2.7],[1.0,8.7],[1.5,16.8],[2.01,28.5],[2.52,41.9],[3.01,57.5],[3.52,76.3],[4.01,97.2],[4.51,121.4],[5.01,148.9],[5.53,180.3]],"id":"D15"},{"g":"Medtronic Bio-Medicus multi-stage","fr":21,"lab":"21 Fr \u00b7 60 cm (96880-021)","p":[[0.5,1],[1,5],[1.5,9],[2,16],[2.5,24],[3,34],[3.5,45],[4,57],[4.5,71],[5,86],[5.5,104],[6,120]],"id":"D16"},{"g":"Medtronic Bio-Medicus multi-stage","fr":25,"lab":"25 Fr \u00b7 60 cm (96880-025)","p":[[0.5,0],[1,2],[1.5,3],[2,6],[2.5,10],[3,15],[3.5,20],[4,27],[4.5,34],[5,41],[5.5,50],[6,58]],"id":"D17"},{"g":"Medtronic NextGen femoral venous (bi-caval)","fr":15,"lab":"15 Fr","p":[[0,0],[0.2,2.3],[0.34,3.2],[0.47,5.2],[0.6,8],[0.74,12.2],[0.87,16.7],[1,21.4],[1.13,26.9],[1.27,32.6],[1.38,38.5],[1.5,44.6],[1.62,51.2],[1.73,57.7],[1.83,63.8],[1.93,70.5],[2.02,77.1],[2.12,82.8],[2.2,89.6],[2.28,96],[2.35,102.2],[2.46,109.4],[2.53,115.9],[2.59,121.9],[2.67,128.4],[2.75,135],[2.82,141.5],[2.89,148.2],[2.97,155.4],[3.05,162.4],[3.13,171.2],[3.2,178.4],[3.26,184.9],[3.32,191.3],[3.39,198.4]],"id":"D18"},{"g":"Medtronic NextGen femoral venous (bi-caval)","fr":17,"lab":"17 Fr","p":[[0,0],[0.2,2.5],[0.34,3.3],[0.47,5.1],[0.58,6.4],[0.74,8.5],[0.87,10.9],[1,13.6],[1.13,16.8],[1.27,19.9],[1.4,23.4],[1.53,27.4],[1.67,31.5],[1.8,36.1],[1.93,40.7],[2.06,45.7],[2.2,50.9],[2.33,56.5],[2.47,62.1],[2.6,68.2],[2.72,74.3],[2.85,80.6],[2.98,87],[3.09,93.3],[3.21,100],[3.33,106.9],[3.45,113.3],[3.55,119.6],[3.65,125.9],[3.74,131.5],[3.83,138],[3.94,144.3],[4.03,151.2],[4.13,158.2],[4.24,165.6],[4.33,172.5],[4.43,179.4],[4.5,184.8],[4.57,190.9],[4.66,197.4]],"id":"D19"},{"g":"Medtronic NextGen femoral venous (bi-caval)","fr":19,"lab":"19 Fr","p":[[0,0],[0.2,2.3],[0.34,2.9],[0.47,3.5],[0.6,4.1],[0.74,4.5],[0.87,5.8],[1,7.4],[1.13,9.3],[1.27,11.5],[1.4,13.6],[1.53,15.9],[1.67,18.4],[1.8,20.7],[1.93,23.4],[2.06,26.4],[2.2,29.4],[2.33,32.6],[2.46,36.1],[2.6,39.6],[2.73,43],[2.86,46.9],[2.99,50.9],[3.13,55.1],[3.26,59.4],[3.39,63.5],[3.52,68],[3.66,72.8],[3.79,77.9],[3.92,82.6],[4.06,87.8],[4.19,93.1],[4.32,98.8],[4.46,104.1],[4.59,109.9],[4.72,116],[4.85,121.8],[4.99,128.1],[5.12,134.5],[5.24,140.5],[5.37,146.7],[5.49,152.9],[5.61,159.3],[5.72,165.1],[5.84,171.8],[6,180.1]],"id":"D20"},{"g":"Medtronic NextGen femoral venous (bi-caval)","fr":21,"lab":"21 Fr","p":[[0,0],[0.2,2.3],[0.34,2.8],[0.47,3.1],[0.6,3.5],[0.74,4.3],[0.87,5.5],[1,6.1],[1.13,7],[1.27,7.9],[1.4,9.3],[1.53,10.6],[1.67,11.8],[1.8,13.5],[1.93,15.3],[2.06,17.3],[2.2,19.2],[2.33,20.8],[2.46,22.7],[2.6,25],[2.73,27.1],[2.86,29.4],[2.99,31.8],[3.13,34.2],[3.26,36.8],[3.39,39.5],[3.53,41.8],[3.66,44.8],[3.79,47.8],[3.92,50.8],[4.06,53.9],[4.19,57.2],[4.32,60.3],[4.46,63.5],[4.59,67.1],[4.72,70.5],[4.85,74.2],[4.99,77.9],[5.12,81.6],[5.25,85.7],[5.39,89.7],[5.52,93.8],[5.65,98.3],[5.78,102.3],[5.92,106.7],[6,109.6]],"id":"D21"},{"g":"Medtronic NextGen femoral venous (bi-caval)","fr":23,"lab":"23 Fr","p":[[0,0],[0.2,2.3],[0.34,2.9],[0.47,3.3],[0.6,3.7],[0.74,4],[0.87,4.6],[1,5.1],[1.13,6],[1.27,7.2],[1.4,8.7],[1.53,9.4],[1.67,10.1],[1.81,11.3],[1.93,12.5],[2.06,14.4],[2.2,15.1],[2.33,16.2],[2.46,17.9],[2.6,19.3],[2.73,20.6],[2.86,22],[2.99,23.8],[3.13,25.4],[3.26,27.2],[3.39,29.1],[3.53,31],[3.66,32.9],[3.79,35],[3.92,37.3],[4.06,39.5],[4.19,41.4],[4.32,43.8],[4.46,46.3],[4.59,48.8],[4.72,51.3],[4.85,54],[4.99,56.8],[5.12,59.7],[5.25,62.3],[5.39,65.5],[5.52,68.6],[5.65,71.8],[5.78,75],[5.92,78.6],[6,80.3]],"id":"D22"},{"g":"Medtronic NextGen femoral venous (bi-caval)","fr":25,"lab":"25 Fr","p":[[0,0],[0.22,2.3],[0.35,2.8],[0.48,3.1],[0.62,3.4],[0.75,3.7],[0.88,4],[1.01,4.3],[1.15,4.7],[1.29,5.5],[1.45,5.5],[1.56,5.8],[1.69,6.4],[1.81,7],[1.94,7.9],[2.08,8.4],[2.21,9.2],[2.34,10.1],[2.48,11.2],[2.61,12.5],[2.74,13.7],[2.86,14.9],[3.01,15.9],[3.14,17.8],[3.27,19.1],[3.41,20],[3.54,21.1],[3.67,22.3],[3.8,24.2],[3.94,25.6],[4.07,27.1],[4.2,28.7],[4.34,30.3],[4.47,31.9],[4.6,33.6],[4.73,35.3],[4.87,37.7],[5,39.4],[5.13,40.8],[5.27,42.6],[5.4,44.6],[5.53,46.7],[5.66,48.7],[5.8,50.6],[5.93,52.8],[6,54.2]],"id":"D23"},{"g":"Medtronic NextGen femoral venous (bi-caval)","fr":27,"lab":"27 Fr","p":[[0,0],[0.2,2.3],[0.34,2.9],[0.48,3],[0.62,3.4],[0.74,3.7],[0.85,4],[1,4.3],[1.14,4.3],[1.27,4.6],[1.4,5],[1.53,5.2],[1.67,5.8],[1.8,6.2],[1.93,6.5],[2.06,7.2],[2.2,7.9],[2.33,9.2],[2.46,10.3],[2.6,11.3],[2.73,12.1],[2.86,13],[2.99,13.5],[3.13,14.5],[3.26,15.4],[3.39,16.3],[3.53,17.2],[3.66,18.3],[3.79,19.4],[3.92,20.5],[4.06,21.4],[4.19,22.3],[4.32,23.4],[4.46,25],[4.59,26.3],[4.72,27.6],[4.85,28.9],[4.99,30.2],[5.12,31.6],[5.25,33],[5.39,34.4],[5.52,35.8],[5.65,37.3],[5.78,38.7],[5.92,40.2],[6,41.8]],"id":"D24"},{"g":"Medtronic NextGen femoral venous (bi-caval)","fr":29,"lab":"29 Fr","p":[[0,0],[0.2,2.3],[0.34,2.9],[0.47,3.1],[0.6,3.3],[0.74,3.4],[0.87,3.5],[1,3.7],[1.13,3.8],[1.27,4],[1.4,4.1],[1.53,4.2],[1.67,4.8],[1.8,5.3],[1.93,5.8],[2.06,6.4],[2.2,7.1],[2.33,7.7],[2.46,8.1],[2.6,8.5],[2.73,8.8],[2.86,9.4],[2.99,10],[3.13,10.7],[3.26,11.3],[3.39,12],[3.53,12.7],[3.66,13.5],[3.79,14.3],[3.92,15],[4.06,15.9],[4.19,16.7],[4.32,17.6],[4.46,18.3],[4.59,19.4],[4.72,20.3],[4.85,21.2],[4.99,21.9],[5.12,23],[5.25,24.5],[5.39,25.6],[5.52,26.7],[5.65,27.9],[5.78,29],[5.92,30.1],[6,31.1]],"id":"D25"}],"R":[{"g":"Getinge Avalon Elite dual-lumen (infusion lumen)","fr":13,"lab":"13 Fr","p":[[0,0],[0.02,0.4],[0.11,1.1],[0.17,4.8],[0.2,10.8],[0.24,19.1],[0.28,27.5],[0.34,40.6],[0.37,50.1],[0.41,63.8],[0.44,74],[0.47,82.9],[0.5,93.5],[0.52,103.8],[0.55,113.4],[0.58,125.3],[0.6,134.8],[0.63,147.4],[0.64,155.7],[0.68,171.2],[0.7,181.4],[0.73,194.5],[0.76,205.1],[0.78,216],[0.8,227.6],[0.82,239.3],[0.84,248.8]],"id":"R0"},{"g":"Getinge Avalon Elite dual-lumen (infusion lumen)","fr":16,"lab":"16 Fr","p":[[0,0],[0.05,0.2],[0.14,2],[0.24,4],[0.33,10.7],[0.42,23.4],[0.47,31.6],[0.52,39.2],[0.57,48.3],[0.61,58.9],[0.66,70.4],[0.7,81.2],[0.74,91.9],[0.78,103.4],[0.82,114.6],[0.85,124.7],[0.89,135.4],[0.92,145.7],[0.96,157.5],[0.99,167.9],[1.02,178.4],[1.06,190.8],[1.09,201.7],[1.12,212.7],[1.15,222.6],[1.17,232.7],[1.21,243.4]],"id":"R1"},{"g":"Getinge Avalon Elite dual-lumen (infusion lumen)","fr":19,"lab":"19 Fr","p":[[0,0],[0.05,0.3],[0.14,2.5],[0.25,3],[0.33,3.3],[0.42,5.3],[0.52,10.6],[0.61,17.5],[0.7,25.6],[0.8,35.3],[0.89,46],[0.98,57.6],[1.08,70.3],[1.17,83.8],[1.26,98],[1.36,113],[1.45,128.7],[1.55,144.9],[1.64,161.6],[1.73,178.8],[1.83,196.9],[1.92,215.2],[2.01,233.9],[2.07,245.7]],"id":"R2"},{"g":"Getinge Avalon Elite dual-lumen (infusion lumen)","fr":20,"lab":"20 Fr","p":[[0,0],[0.1,0.4],[0.28,1.6],[0.46,7.8],[0.54,14.8],[0.63,22.7],[0.7,30.1],[0.79,40.2],[0.86,49.1],[0.92,58.2],[1,68.6],[1.05,76.5],[1.1,84.6],[1.15,93.5],[1.2,101.8],[1.25,110.4],[1.31,120.1],[1.35,128.3],[1.4,137.3],[1.45,147.1],[1.49,155.7],[1.54,164.9],[1.58,172.2],[1.62,181.7],[1.67,190],[1.7,199.2],[1.74,206.6],[1.79,217.1],[1.82,224.3],[1.87,235.4],[1.93,246.3]],"id":"R3"},{"g":"Getinge Avalon Elite dual-lumen (infusion lumen)","fr":23,"lab":"23 Fr","p":[[0,0],[0.26,1.6],[0.43,2.3],[0.57,4.7],[0.7,8.8],[0.8,12.4],[0.89,17.1],[0.98,21.4],[1.08,27.7],[1.16,33.2],[1.26,40.8],[1.34,46.9],[1.43,53.8],[1.52,62.9],[1.61,71.5],[1.7,80.3],[1.79,88.7],[1.87,97.4],[1.95,105.9],[2.02,113.9],[2.09,121.8],[2.16,130.8],[2.24,139.6],[2.31,148.4],[2.39,157.9],[2.46,166.8],[2.53,175.7],[2.6,184.6],[2.67,193.5],[2.73,201.7],[2.8,210.6],[2.87,220],[2.93,226.6],[2.99,236.2],[3.03,242]],"id":"R4"},{"g":"Getinge Avalon Elite dual-lumen (infusion lumen)","fr":27,"lab":"27 Fr","p":[[0,0],[0.26,0.7],[0.43,0.5],[0.6,1.1],[0.8,1.6],[0.98,3.8],[1.16,8.2],[1.33,15.3],[1.52,24],[1.7,33.2],[1.89,43.5],[2.07,54.2],[2.25,65.7],[2.43,77.7],[2.61,90.2],[2.79,102.8],[2.97,116],[3.15,129.4],[3.33,142.9],[3.51,156.6],[3.69,170.6],[3.87,184.8],[4.05,199.1],[4.23,213.5],[4.41,227.7],[4.59,241.9],[4.65,247.2]],"id":"R5"},{"g":"Getinge Avalon Elite dual-lumen (infusion lumen)","fr":31,"lab":"31 Fr","p":[[0,0],[0.28,1.2],[0.47,1.1],[0.63,1.7],[0.8,2.3],[0.98,3.7],[1.17,5.8],[1.34,8.8],[1.52,11.3],[1.7,15.2],[1.89,19.8],[2.07,24.6],[2.25,30.5],[2.43,36.3],[2.61,42.8],[2.79,49.6],[2.97,56.7],[3.15,64.4],[3.33,72.2],[3.51,80.7],[3.69,88.9],[3.87,98.3],[4.05,107.3],[4.23,116.9],[4.41,126.7],[4.59,136.8],[4.78,147.1],[4.96,157.8],[5.14,168.6],[5.32,179.6],[5.5,191],[5.68,202.4],[5.86,214.2],[6,223.1]],"id":"R6"},{"g":"Getinge HLS arterial","fr":13,"lab":"13 Fr \u00b7 15 cm (PAS 1315)","p":[[0,0],[0.15,2.1],[0.41,4.8],[0.62,10.6],[0.86,17.9],[1.04,25.2],[1.29,37.3],[1.5,48.8],[1.66,59.1],[1.84,73],[1.96,82.7],[2.18,103.2],[2.28,114.4],[2.39,127.4],[2.47,137.1],[2.57,149.7],[2.67,164.3],[2.78,178.9],[2.87,190.1],[2.94,198.9]],"id":"R7"},{"g":"Getinge HLS arterial","fr":15,"lab":"15 Fr \u00b7 15 cm (PAS 1515)","p":[[0,0],[0.09,0.3],[0.31,2.1],[0.53,4.9],[0.73,7.7],[0.95,11.8],[1.16,17.2],[1.37,23.5],[1.58,29.2],[1.79,36.9],[2,45.2],[2.2,55.1],[2.37,64.5],[2.51,75],[2.65,84.1],[2.78,94.2],[2.91,103.6],[3.01,113.9],[3.14,124.3],[3.26,135.7],[3.38,144.9],[3.51,155.8],[3.61,164.7],[3.71,174.1],[3.83,185.6],[3.96,197.9]],"id":"R8"},{"g":"Getinge HLS arterial","fr":15,"lab":"15 Fr \u00b7 23 cm (PAL 1523)","p":[[0,0],[0.11,0.3],[0.33,1.5],[0.53,4.6],[0.71,7.4],[0.93,11.3],[1.17,18.6],[1.41,26],[1.64,34.5],[1.84,42.9],[1.99,51.4],[2.11,59.7],[2.24,70.4],[2.37,80],[2.49,90.1],[2.6,100.2],[2.71,111],[2.81,119.4],[2.89,128.2],[2.99,137.1],[3.13,150.9],[3.27,166.1],[3.4,179.9],[3.52,193.3]],"id":"R9"},{"g":"Getinge HLS arterial","fr":17,"lab":"17 Fr \u00b7 15 cm (PAS 1715)","p":[[0,0],[0.09,0.6],[0.31,1.7],[0.52,3],[0.73,4.2],[0.95,6.1],[1.16,9.3],[1.37,13],[1.58,17.2],[1.8,20.9],[2.01,24.8],[2.22,30.1],[2.44,36.3],[2.65,42.2],[2.86,49.6],[3.08,58],[3.29,66.9],[3.5,77],[3.71,86.1],[3.91,96.6],[4.1,105.9],[4.28,115.3],[4.45,124.7],[4.62,135.3],[4.77,144.6],[4.94,155],[5.07,164.1],[5.22,174.5],[5.36,183.5],[5.48,191.6],[5.56,196.8]],"id":"R10"},{"g":"Getinge HLS arterial","fr":17,"lab":"17 Fr \u00b7 23 cm (PAL 1723)","p":[[0,0],[0.11,0.6],[0.33,1.4],[0.54,2],[0.75,3.8],[0.98,7],[1.18,9.2],[1.39,13.5],[1.6,18],[1.82,22.9],[2.03,29.3],[2.24,37.3],[2.46,45.1],[2.67,54.4],[2.88,63.7],[3.09,74.5],[3.27,83.8],[3.44,94],[3.62,103.8],[3.78,114.5],[3.94,123.7],[4.09,134.7],[4.24,144.2],[4.38,154.4],[4.51,163.6],[4.65,174.3],[4.78,183.7],[4.93,195],[5.02,199.7]],"id":"R11"},{"g":"Getinge HLS arterial","fr":19,"lab":"19 Fr \u00b7 15 cm (PAS 1915)","p":[[0,0],[0.04,0.9],[0.25,1.9],[0.46,2.8],[0.67,3.6],[0.89,4.7],[1.1,5.8],[1.31,6.9],[1.54,9.1],[1.77,11.6],[1.95,13.7],[2.18,16.8],[2.38,20.3],[2.59,24.4],[2.8,28.7],[3.02,33.3],[3.23,38.5],[3.44,43.5],[3.66,49.5],[3.87,55.8],[4.08,61.6],[4.29,69.5],[4.51,77.3],[4.72,84.6],[4.93,93.2],[5.15,101.5],[5.36,110.4],[5.57,119.4],[5.79,128.7],[6,138.3],[6.19,147],[6.39,157.4],[6.59,168.2],[6.79,179],[7,188.7]],"id":"R12"},{"g":"Getinge HLS arterial","fr":19,"lab":"19 Fr \u00b7 23 cm (PAL 1923)","p":[[0,0],[0.09,0.6],[0.31,1.6],[0.52,2.2],[0.73,2.8],[0.95,4.4],[1.16,6.1],[1.36,8.4],[1.57,11.6],[1.81,14.7],[2.01,18.9],[2.22,22.4],[2.44,27.7],[2.65,33.4],[2.86,39.3],[3.07,45.5],[3.29,52],[3.5,59.3],[3.71,66.1],[3.93,74.4],[4.14,82.4],[4.35,91.1],[4.57,99.8],[4.78,109.8],[4.99,119.2],[5.18,128.4],[5.35,137.7],[5.53,146.9],[5.7,156.8],[5.87,166.6],[6.04,176.4],[6.2,185.5],[6.39,196.4]],"id":"R13"},{"g":"Getinge HLS arterial","fr":21,"lab":"21 Fr \u00b7 15 cm (PAS 2115)","p":[[0,0],[0.11,0.5],[0.33,1.5],[0.54,1.5],[0.75,2.6],[0.96,3.3],[1.18,4.2],[1.39,5.1],[1.6,6],[1.82,8],[2.03,10.4],[2.26,12.2],[2.47,14.7],[2.67,16.8],[2.88,19.5],[3.1,22.5],[3.31,25.8],[3.52,29.4],[3.75,33.6],[3.96,37.9],[4.18,42.1],[4.39,46.9],[4.6,51.5],[4.82,56.5],[5.03,61.7],[5.24,67.1],[5.46,72.6],[5.67,78.2],[5.88,84],[6.09,90.1],[6.31,96.5],[6.52,103],[6.73,109.9],[7,116.6]],"id":"R14"},{"g":"Getinge HLS arterial","fr":21,"lab":"21 Fr \u00b7 23 cm (PAL 2123)","p":[[0,0],[0.11,0.7],[0.34,1],[0.53,1.7],[0.75,2.8],[0.96,3.5],[1.18,5],[1.39,6.4],[1.6,8.2],[1.82,10.7],[2.03,12.4],[2.24,15.1],[2.49,17.9],[2.68,21.7],[2.9,24.5],[3.09,29.2],[3.31,32.8],[3.52,36.9],[3.73,40.8],[3.95,45.4],[4.16,49.2],[4.37,54.5],[4.58,60.3],[4.8,66.5],[5.01,72.6],[5.22,79.3],[5.44,85.8],[5.65,93.5],[5.88,100.6],[6.08,107.9],[6.29,115.8],[6.5,123.5],[6.72,130.1],[6.81,134.8],[6.93,138.8],[7,142.2]],"id":"R15"},{"g":"Getinge HLS arterial","fr":23,"lab":"23 Fr \u00b7 15 cm (PAS 2315)","p":[[0,0],[0.07,0.5],[0.29,1.5],[0.5,1.5],[0.71,1.9],[0.93,2.9],[1.14,3.7],[1.35,4.4],[1.56,5.7],[1.78,6.7],[1.99,7.6],[2.2,9.3],[2.42,10.3],[2.63,11.9],[2.84,13.8],[3.05,15.8],[3.28,17.8],[3.48,20.1],[3.69,22],[3.91,25.3],[4.12,28.1],[4.33,31.2],[4.54,34.2],[4.76,38.2],[5,41.7],[5.18,44.7],[5.4,48.3],[5.61,52.4],[5.82,56.7],[6.04,60],[6.25,64.7],[6.46,69.3],[6.67,73.8],[6.85,77.3],[7,80.6]],"id":"R16"},{"g":"Getinge HLS arterial","fr":23,"lab":"23 Fr \u00b7 23 cm (PAL 2323)","p":[[0,0],[0.09,0.5],[0.31,0.7],[0.52,0.8],[0.73,1.6],[0.95,2.8],[1.16,4],[1.37,4.7],[1.58,5.9],[1.8,7.4],[2.01,9.2],[2.24,10.5],[2.43,11.9],[2.64,14.7],[2.86,17.1],[3.07,20],[3.29,22.4],[3.49,25.2],[3.71,28.7],[3.93,31.4],[4.14,35],[4.35,38.8],[4.56,42.2],[4.78,45.9],[4.99,50.2],[5.2,54.5],[5.42,59.1],[5.63,63],[5.84,67.9],[6.06,72.9],[6.27,78.4],[6.48,83.1],[6.69,88.9],[7,94.7]],"id":"R17"},{"g":"Medtronic NextGen femoral arterial","fr":15,"lab":"15 Fr","p":[[0,0],[0.07,1.1],[0.22,1.8],[0.38,3.1],[0.55,4.7],[0.7,6.7],[0.85,9.3],[1.02,12.8],[1.17,16.7],[1.32,21],[1.48,25.5],[1.64,30.7],[1.79,36.3],[1.95,41.6],[2.08,47.6],[2.22,54],[2.37,61.1],[2.5,68.5],[2.62,75],[2.74,81.8],[2.85,88.7],[2.96,95.6],[3.06,102.4],[3.15,108.9],[3.23,115.4],[3.33,122.6],[3.42,130.4],[3.5,136.9],[3.57,143.2],[3.64,149.8],[3.71,156.4],[3.78,163.3],[3.85,170.4],[3.92,177.8],[3.99,185.5],[4.06,192.7],[4.12,198.8]],"id":"R18"},{"g":"Medtronic NextGen femoral arterial","fr":17,"lab":"17 Fr","p":[[0,0],[0.41,0.5],[0.57,0.9],[0.73,1.7],[0.88,3.2],[1.04,4.9],[1.19,7.1],[1.35,9.7],[1.51,12.8],[1.66,15.2],[1.82,18.4],[1.98,21.9],[2.13,25.8],[2.29,30.1],[2.45,34.6],[2.6,39.6],[2.76,44.5],[2.91,50],[3.07,55.8],[3.23,61.8],[3.38,68],[3.53,74.4],[3.68,81],[3.83,88],[3.97,94.5],[4.1,101.2],[4.24,108.2],[4.36,114.7],[4.48,121.4],[4.61,128.6],[4.73,135.8],[4.84,142.5],[4.95,149.4],[5.06,156.1],[5.16,162.6],[5.26,169.4],[5.36,176.1],[5.46,182.7],[5.56,190.1],[5.66,197.6]],"id":"R19"},{"g":"Medtronic NextGen femoral arterial","fr":19,"lab":"19 Fr","p":[[0,0],[0.61,0.6],[0.77,1.3],[0.92,2.6],[1.08,4.1],[1.24,5.3],[1.39,6.9],[1.55,8.5],[1.71,9.8],[1.86,12.1],[2.02,14.6],[2.18,17.1],[2.33,19.7],[2.49,21.9],[2.64,24.4],[2.8,27.5],[2.96,30.8],[3.11,33.9],[3.27,36.8],[3.43,40.1],[3.58,43.6],[3.74,47.6],[3.9,51.5],[4.05,55.7],[4.21,60.2],[4.36,64.7],[4.52,69.4],[4.68,74.4],[4.83,80],[4.99,85.1],[5.15,90.8],[5.3,96.8],[5.46,102.8],[5.61,109],[5.76,115.2],[5.9,121.6],[6,125.6]],"id":"R20"},{"g":"Medtronic NextGen femoral arterial","fr":21,"lab":"21 Fr","p":[[0,0],[0.53,0.4],[0.68,0.8],[0.84,1.3],[1,2],[1.15,2.9],[1.31,3.9],[1.46,4.9],[1.62,6.7],[1.78,8.2],[1.93,9.5],[2.09,10.8],[2.25,12],[2.4,13.6],[2.56,15.2],[2.72,16.8],[2.87,18.8],[3.03,20.4],[3.18,22.2],[3.34,24.4],[3.5,26.5],[3.65,28.8],[3.81,31.2],[3.97,33.6],[4.12,36.1],[4.28,38.8],[4.44,41.5],[4.59,44.6],[4.75,47.8],[4.9,51],[5.06,54.3],[5.22,58.2],[5.37,61.9],[5.53,65.8],[5.69,69.9],[5.84,74.3],[6,78]],"id":"R21"},{"g":"Medtronic NextGen femoral arterial","fr":23,"lab":"23 Fr","p":[[0,0],[0.24,0.1],[0.4,0.2],[0.56,0.4],[0.71,0.8],[0.87,1.2],[1.02,1.6],[1.18,2.3],[1.34,3],[1.49,3.8],[1.65,4.6],[1.81,5.3],[1.96,6.3],[2.12,7.6],[2.27,8.6],[2.43,9.5],[2.59,10.5],[2.74,11.5],[2.9,12.1],[3.06,13.2],[3.21,14.4],[3.37,15.7],[3.53,17.3],[3.68,18.9],[3.84,20.2],[3.99,21.8],[4.15,23.5],[4.31,25.2],[4.46,27.1],[4.62,28.9],[4.78,31],[4.93,33.2],[5.09,35.4],[5.25,37.8],[5.4,40.1],[5.56,42.7],[5.71,45.3],[5.87,48.3],[6,50.2]],"id":"R22"},{"g":"Medtronic NextGen femoral arterial","fr":25,"lab":"25 Fr","p":[[0,0],[0.27,0],[0.43,0.2],[0.58,0.5],[0.74,0.6],[0.9,0.9],[1.05,1.5],[1.21,1.8],[1.37,2.4],[1.52,3],[1.68,3.6],[1.83,4],[1.99,4.5],[2.15,5],[2.3,5.6],[2.46,6.2],[2.62,6.9],[2.77,7.5],[2.93,8.2],[3.09,8.7],[3.24,9.4],[3.4,10.2],[3.55,11],[3.71,11.8],[3.87,12.6],[4.02,13.6],[4.18,14.7],[4.34,15.4],[4.49,16.4],[4.65,17.7],[4.8,19],[4.96,20.2],[5.12,21.4],[5.27,22.9],[5.43,24.3],[5.59,25.7],[5.74,27.2],[5.9,28.8],[6,29.8]],"id":"R23"},{"g":"Medtronic NextGen jugular venous (IJ return)","fr":15,"lab":"15 Fr","p":[[0,0],[0.23,0.2],[0.38,1.3],[0.54,3.7],[0.7,6.1],[0.85,8.7],[1.01,11.9],[1.17,15.5],[1.32,19.5],[1.48,24],[1.64,29],[1.79,34.5],[1.95,40.4],[2.1,46.9],[2.25,53.6],[2.4,60.4],[2.53,67.4],[2.65,74],[2.77,80.6],[2.88,87.4],[2.99,94.6],[3.1,101.8],[3.2,108.8],[3.3,116.1],[3.39,123.1],[3.48,130],[3.56,137.2],[3.65,144.4],[3.72,151.5],[3.8,158],[3.87,164.9],[3.94,172],[4.01,179.2],[4.08,186.8],[4.14,193.8],[4.19,198.9]],"id":"R24"},{"g":"Medtronic NextGen jugular venous (IJ return)","fr":17,"lab":"17 Fr","p":[[0,0],[0.47,1],[0.63,2.2],[0.78,3.3],[0.94,5.4],[1.1,7.8],[1.25,10.8],[1.41,13.7],[1.56,16.8],[1.72,20.4],[1.88,24.2],[2.03,28.3],[2.19,32.7],[2.35,37.4],[2.5,42.4],[2.66,47.6],[2.81,53.1],[2.97,58.9],[3.13,65],[3.28,71.3],[3.44,77.9],[3.59,84.4],[3.73,91.2],[3.87,97.9],[4.02,104.9],[4.15,111.8],[4.28,118.6],[4.41,125.5],[4.53,132.3],[4.65,139.2],[4.77,146.3],[4.88,153.2],[5,160.2],[5.11,167.3],[5.22,174.3],[5.32,180.8],[5.42,187.6],[5.52,194.4],[5.59,199.5]],"id":"R25"},{"g":"Medtronic NextGen jugular venous (IJ return)","fr":19,"lab":"19 Fr","p":[[0,0],[0.65,1.1],[0.81,2.2],[0.97,3.6],[1.12,5.3],[1.28,7.4],[1.44,9.4],[1.59,11.1],[1.75,12.9],[1.91,15],[2.06,17.3],[2.22,19.6],[2.37,21.9],[2.53,24.7],[2.69,28.1],[2.84,31.2],[3,34.4],[3.16,37.6],[3.31,41.3],[3.47,44.9],[3.63,48.8],[3.78,53],[3.94,57.2],[4.09,61.4],[4.25,66],[4.41,70.7],[4.56,75.7],[4.72,80.8],[4.88,86],[5.03,91.5],[5.19,97.2],[5.34,103.1],[5.5,109.3],[5.66,115.5],[5.81,121.3],[6,127.4]],"id":"R26"},{"g":"Medtronic NextGen jugular venous (IJ return)","fr":21,"lab":"21 Fr","p":[[0,0],[0.38,0.1],[0.54,0.9],[0.7,0.9],[0.85,1.7],[1.01,3],[1.17,4.1],[1.32,5.3],[1.48,6.6],[1.64,7.4],[1.79,8.4],[1.95,9.9],[2.1,11.6],[2.26,13.4],[2.42,14.8],[2.57,16.7],[2.73,19.6],[2.89,21.7],[3.04,24],[3.2,26.5],[3.36,29.2],[3.51,31.6],[3.67,34.4],[3.82,37.2],[3.98,40.1],[4.14,43.1],[4.29,46.3],[4.45,49.4],[4.61,53],[4.76,56.3],[4.92,59.8],[5.07,63.4],[5.23,67],[5.39,70.8],[5.54,74.8],[5.7,78.8],[5.86,82.9],[6,85.8]],"id":"R27"},{"g":"Medtronic NextGen jugular venous (IJ return)","fr":23,"lab":"23 Fr","p":[[0,0],[0.1,0.2],[0.26,0.6],[0.41,0.8],[0.57,1.4],[0.73,1.5],[0.88,2],[1.04,2.6],[1.19,3.5],[1.35,4.5],[1.51,5.4],[1.66,6.5],[1.82,7.5],[1.98,8.3],[2.13,9.1],[2.29,9.7],[2.45,11],[2.6,12.1],[2.76,13.8],[2.91,15.2],[3.07,16.6],[3.23,18.4],[3.38,19.7],[3.54,21.2],[3.7,23],[3.85,24.8],[4.01,26.7],[4.17,28.5],[4.32,30.5],[4.48,32.6],[4.63,34.7],[4.79,36.9],[4.95,39.3],[5.1,41.5],[5.26,44],[5.42,46.6],[5.57,49.2],[5.73,52],[5.89,54.7],[6,56.4]],"id":"R28"},{"g":"Medtronic NextGen jugular venous (IJ return)","fr":25,"lab":"25 Fr","p":[[0,0],[0.7,0.4],[0.85,1],[1.01,1.3],[1.17,1.5],[1.32,2.2],[1.48,3.1],[1.64,3.6],[1.79,4.4],[1.95,5],[2.1,5.9],[2.26,6.7],[2.42,7.4],[2.57,8.4],[2.73,9.5],[2.89,10.8],[3.04,11.9],[3.2,12.8],[3.36,14.1],[3.51,15.3],[3.67,16.5],[3.82,17.4],[3.98,18.7],[4.14,20],[4.29,21.4],[4.45,23.1],[4.61,24.7],[4.76,26.2],[4.92,27.9],[5.07,29.6],[5.23,31.1],[5.39,32.9],[5.54,34.8],[5.7,36.6],[5.86,38.6],[6,40]],"id":"R29"}]};
+/*
+MIT License — Copyright (c) 2025 IMhongkeun (perfusion-tools)
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+const DRAIN = CANNULA_DATA.D, RET = CANNULA_DATA.R;
+/* Linear interpolation inside the digitised range only; null outside it. */
+function dpAt(c, q){
+  const p=c.p; if(!(q>=p[0][0]) || q>p[p.length-1][0]) return null;
+  for(let i=1;i<p.length;i++){ const [x0,y0]=p[i-1],[x1,y1]=p[i];
+    if(q<=x1) return x1===x0 ? y1 : y0+(y1-y0)*(q-x0)/(x1-x0); }
+  return null;
+}
+function fillSelect(sel, list, defId){
+  const groups=[...new Set(list.map(c=>c.g))];
+  groups.forEach(g=>{ const og=document.createElement('optgroup'); og.label=g;
+    list.filter(c=>c.g===g).forEach(c=>og.appendChild(new Option(c.lab, c.id))); sel.appendChild(og); });
+  sel.value=defId;
+}
+const byLab=(list,g,s)=>(list.find(c=>c.g===g&&c.lab.includes(s))||list[0]).id;
+fillSelect($('drainSel'), DRAIN, byLab(DRAIN,'Getinge HLS venous','PVL 2555'));
+fillSelect($('retSel'),   RET,   byLab(RET,'Getinge HLS arterial','PAS 1915'));
+
+function graph(el, fam, active, q, band, tgt, o){
+  const W=Math.max(320, Math.min(640, Math.round(el.clientWidth||520)));
+  const H=Math.round(Math.max(230, W*0.56));
+  const small=W<440, m={t:30,r:small?30:40,b:38,l:small?40:46};
+  const xMax=7, yMax=200, iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const X=v=>m.l+v/xMax*iw, Y=v=>m.t+ih-Math.min(v,yMax)/yMax*ih;
+  let s=`<svg class="${o.title==='Return'?'ret':'drn'}" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${o.title} pressure drop versus flow">`;
+  for(let i=0;i<=xMax;i++) s+=`<line class="grid-l" x1="${X(i)}" x2="${X(i)}" y1="${m.t}" y2="${m.t+ih}"/><text class="ax" x="${X(i)}" y="${m.t+ih+15}" text-anchor="middle">${i}</text>`;
+  for(let v=0;v<=yMax;v+=50) s+=`<line class="grid-l" x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${m.l-6}" y="${Y(v)+3.5}" text-anchor="end">${v}</text>`;
+  if(band) s+=`<rect class="band" x="${X(band[0])}" y="${m.t}" width="${Math.max(0,X(Math.min(band[1],xMax))-X(Math.min(band[0],xMax)))}" height="${ih}"/>`;
+  if(isFinite(tgt)&&tgt<=xMax) s+=`<line class="tgt" x1="${X(tgt)}" x2="${X(tgt)}" y1="${m.t}" y2="${m.t+ih}"/>`;
+  s+=`<line class="axis" x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${m.t+ih}"/><line class="axis" x1="${m.l}" x2="${m.l+iw}" y1="${m.t+ih}" y2="${m.t+ih}"/>`;
+  if(isFinite(o.lim)&&o.lim>0&&o.lim<=yMax) s+=`<line class="lim" x1="${m.l}" x2="${m.l+iw}" y1="${Y(o.lim)}" y2="${Y(o.lim)}"/><text class="limt" x="${m.l+6}" y="${Y(o.lim)-5}">${o.lim} mmHg</text>`;
+  const on=fam.find(c=>c.id===active); const used=[]; let curvesOff='', curvesOn='';
+  [on, ...fam.filter(c=>c!==on)].forEach(c=>{ if(!c) return;
+    const pts=c.p.filter(([x,y])=>x<=xMax&&y<=yMax);
+    const last=c.p.find(([x,y])=>y>yMax||x>xMax);
+    if(last && pts.length){ const [x0,y0]=pts[pts.length-1]; const [x1,y1]=last; const t=y1>yMax?(yMax-y0)/(y1-y0):(xMax-x0)/(x1-x0); pts.push([x0+(x1-x0)*t, Math.min(yMax,y0+(y1-y0)*t)]); }
+    if(pts.length<2) return;
+    const path=`<path class="curve ${c===on?'on':''}" d="M${pts.map(([x,y])=>`${X(x).toFixed(1)},${Y(y).toFixed(1)}`).join('L')}"/>`;
+    const [lx,ly]=pts[pts.length-1]; const tx=Math.min(X(lx)+3,W-m.r+4), ty=Y(ly)-(ly>=yMax-1?-10:3);
+    const label=`<text class="lab ${c===on?'on':''}" x="${tx}" y="${ty}">${c.fr}</text>`;
+    const clash=used.some(([ux,uy])=>Math.abs(ux-tx)<16&&Math.abs(uy-ty)<11);
+    if(c===on){ curvesOn=path+label; } else { curvesOff+=path; if(!clash) curvesOff+=label; }
+    if(!clash||c===on) used.push([tx,ty]);
+  });
+  s+=curvesOff+curvesOn;
+  if(on&&q>0){const p=dpAt(on,q); if(p!=null&&p<=yMax) s+=`<circle class="pt" r="5.5" cx="${X(q)}" cy="${Y(p)}"/>`;}
+  s+=`<text class="ttl" x="${m.l}" y="17">${o.title}</text><text class="ax sub" x="${m.l+iw}" y="17" text-anchor="end">${on?on.g:''}</text>`;
+  s+=`<text class="ax" x="${m.l+iw/2}" y="${H-4}" text-anchor="middle">Flow (L/min)</text>`;
+  s+=`<text class="ax" transform="rotate(-90)" x="${-(m.t+ih/2)}" y="11" text-anchor="middle">ΔP (mmHg)</text></svg>`;
+  el.innerHTML=s;
+}
+function calcCannula(w){
+  if(!state.opTouched && isFinite(state.target)) setVal('opFlow', Math.round(state.target*10)/10);
+  const q=val('opFlow'), lim=raw('limRef');
+  const band=[w*50/1000, w*80/1000];
+  const d=DRAIN.find(c=>c.id===$('drainSel').value), r=RET.find(c=>c.id===$('retSel').value);
+  const famD=DRAIN.filter(c=>c.g===d.g), famR=RET.filter(c=>c.g===r.g);
+  graph($('gDrain'),famD,d.id,q,band,state.target,{title:'Drainage',lim});
+  graph($('gReturn'),famR,r.id,q,band,state.target,{title:'Return',lim});
+  const show=(c,id)=>{ const v=dpAt(c,q);
+    if(v==null){ $(id).innerHTML=`<span class="small">beyond chart</span> ${pill('warn',`chart ends ${c.p[c.p.length-1][0].toFixed(1)} L/min`)}`; return; }
+    const ok=!isFinite(lim)||v<=lim;
+    $(id).innerHTML=`${v.toFixed(0)} <small>mmHg</small> ${pill(ok?'ok':'bad', ok?'≤ line':'> line')}`; };
+  show(d,'dDP'); show(r,'rDP');
+  const pick=fam=>{ const c=[...fam].sort((a,b)=>a.fr-b.fr).find(c=>{const v=dpAt(c,q); return v!=null&&v<=lim;}); return c?c.lab.split(' (')[0]:'none in range'; };
+  $('smallest').innerHTML = `${pick(famD)} drainage<br>${pick(famR)} return`;
+  calcCircuit(q,d,r);
+}
+/* ---------- 2b. WHOLE-CIRCUIT PRESSURES ---------- */
+/* Darcy–Weisbach tubing loss; blood ρ 1060 kg/m³, μ 3.5 mPa·s. Laminar 64/Re, Blasius turbulent, linear blend 2300–4000. */
+function tubeLoss(qLmin, Lm, Dmm){
+  if(!(qLmin>0) || !(Lm>0) || !(Dmm>0)) return 0;
+  const rho=1060, mu=0.0035, D=Dmm/1000, Q=qLmin/60000, v=Q/(Math.PI*D*D/4), Re=rho*v*D/mu;
+  const fl=64/Re, ft=0.316*Math.pow(Re,-0.25);
+  const f= Re<2300 ? fl : Re>4000 ? ft : fl+(ft-fl)*(Re-2300)/1700;
+  return f*(Lm/D)*rho*v*v/2/133.322;
+}
+function circuitModel(o){
+  const hyd = o.pumpH*10*1.06/13.6;      /* cm of blood → mmHg: 10 mm/cm × ρ_blood/ρ_Hg ≈ 0.78 mmHg per cm */
+  const outP = o.mode==='VA' ? o.map : o.cvp;
+  const cd=o.k*o.dpD, cr=o.k*o.dpR, td=tubeLoss(o.q,o.lenD,o.id), tr=tubeLoss(o.q,o.lenR,o.id);
+  const P1 = o.cvp - cd - td + hyd;
+  const P3 = outP + cr + tr + hyd;
+  const P2 = P3 + o.oxy;
+  return {P1,P2,P3,head:P2-P1,cd,cr,td,tr,outP,hyd,
+    pts:[['RA',o.cvp],['Drainage cannula',o.cvp-cd],['Pump inlet P1',P1],['Pump outlet P2',P2],['Post-oxy P3',P3],['Return cannula',outP+cr],[o.mode==='VA'?'Artery':'RA',outP]]};
+}
+function circChart(el,r){
+  const W=Math.max(320,Math.min(640,Math.round(el.clientWidth||520))), H=Math.round(Math.max(220,W*0.48));
+  const m={t:26,r:16,b:46,l:44}, iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const vals=r.pts.map(p=>p[1]); const yMin=Math.min(-150,Math.floor((Math.min(...vals)-20)/50)*50), yMax=Math.max(300,Math.ceil((Math.max(...vals)+20)/50)*50);
+  const X=i=>m.l+i/(r.pts.length-1)*iw, Y=v=>m.t+ih-(v-yMin)/(yMax-yMin)*ih;
+  let s=`<svg class="circ" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Pressure along the ECMO circuit">`;
+  for(let v=yMin;v<=yMax;v+=50) s+=`<line class="grid-l" x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${m.l-6}" y="${Y(v)+3.5}" text-anchor="end">${v}</text>`;
+  s+=`<line class="axis" x1="${m.l}" x2="${m.l+iw}" y1="${Y(0)}" y2="${Y(0)}"/>`;
+  s+=`<line class="lim" x1="${m.l}" x2="${m.l+iw}" y1="${Y(-100)}" y2="${Y(-100)}"/><text class="limt" x="${m.l+6}" y="${Y(-100)+12}">−100 mmHg</text>`;
+  s+=`<path class="curve on" d="M${r.pts.map((p,i)=>`${X(i).toFixed(1)},${Y(p[1]).toFixed(1)}`).join('L')}"/>`;
+  r.pts.forEach((p,i)=>{ s+=`<circle class="pt" r="4" cx="${X(i)}" cy="${Y(p[1])}"/>`;
+    s+=`<text class="ax" x="${X(i)}" y="${H-24+(i%2)*12}" text-anchor="${i===0?'start':i===r.pts.length-1?'end':'middle'}">${p[0]}</text>`; });
+  s+=`<text class="ttl" x="${m.l}" y="15">Pressure along the circuit (mmHg)</text></svg>`;
+  el.innerHTML=s;
+}
+function calcCircuit(q,d,r){
+  const dpD=dpAt(d,q), dpR=dpAt(r,q);
+  const o={q,mode:state.mode,cvp:raw('cvp'),map:raw('mapIn'),k:val('bloodK'),lenD:raw('tubD'),lenR:raw('tubR'),id:raw('tubID'),oxy:raw('oxyDP'),pumpH:raw('pumpH')||0,dpD,dpR};
+  const clear=msg=>{['cP1','cP2','cP3','cHead','cLoss'].forEach(i=>$(i).textContent='—'); $('gCirc').innerHTML=''; $('cNote').textContent=msg;};
+  if(dpD==null||dpR==null){ clear('Operating flow is beyond the published chart range of a selected cannula, so circuit pressures are not estimated.'); return; }
+  if(![o.cvp,o.map,o.k,o.lenD,o.lenR,o.id,o.oxy].every(isFinite)){ clear('Complete the circuit inputs.'); return; }
+  const c=circuitModel(o); circChart($('gCirc'),c);
+  const p1cls = c.P1<=-100?'bad': c.P1<=-75?'warn':'ok';
+  $('cP1').innerHTML=`${c.P1.toFixed(0)} <small>mmHg</small> ${pill(p1cls, c.P1<=-100?'≤ −100':c.P1<=-75?'approaching −100':'> −100')}`;
+  $('cP2').innerHTML=`${c.P2.toFixed(0)} <small>mmHg</small>`;
+  $('cP3').innerHTML=`${c.P3.toFixed(0)} <small>mmHg</small>`;
+  $('cHead').innerHTML=`${c.head.toFixed(0)} <small>mmHg</small>`;
+  $('cLoss').innerHTML=`drainage ${c.cd.toFixed(0)} · ${c.td.toFixed(0)} mmHg<br>return ${c.cr.toFixed(0)} · ${c.tr.toFixed(0)} mmHg`;
+  const big = c.cd+c.td > c.cr+c.tr ? 'drainage side' : 'return side';
+  $('cNote').textContent = (c.P1<=-100 ? 'Predicted inlet pressure is at or beyond −100 mmHg, the usual target limit (ELSO Red Book), with risk of haemolysis and chatter. Consider a larger or shorter drainage cannula, volume status, or lower flow. ' : '') + `Most of the pressure loss is on the ${big}. ${o.mode==='VA'?'Return pressure is referenced to MAP (VA).':'Return pressure is referenced to CVP (VV).'}`;
+}
+
+
+/* ---------- 3. HEPARIN ---------- */
+const TESTS = {
+  aPTT:{ name:'aPTT', unit:'s', dec:0, range:[20,200,1], target:[55,75],
+    bands:(lo,hi)=>[
+      {lt:lo-9,  bolus:80,hold:0, ch:+4},
+      {lt:lo,    bolus:40,hold:0, ch:+2},
+      {le:hi,    bolus:0, hold:0, ch:0},
+      {le:hi+15, bolus:0, hold:0, ch:-2},
+      {le:hi+25, bolus:0, hold:30,ch:-2},
+      {          bolus:0, hold:60,ch:-3}]},
+  ACT:{ name:'ACT', unit:'s', dec:0, range:[80,400,1], target:[180,220],
+    bands:(lo,hi)=>[
+      {lt:lo-20, bolus:80,hold:0, ch:+4},
+      {lt:lo,    bolus:40,hold:0, ch:+2},
+      {le:hi,    bolus:0, hold:0, ch:0},
+      {le:hi+20, bolus:0, hold:0, ch:-2},
+      {le:hi+40, bolus:0, hold:30,ch:-2},
+      {          bolus:0, hold:60,ch:-3}]},
+  Xa:{ name:'Anti-Xa', unit:'IU/mL', dec:2, range:[0,1.5,0.01], target:[0.3,0.7],
+    bands:(lo,hi)=>[
+      {lt:+(lo-0.1).toFixed(2), bolus:40,hold:0, ch:+2},
+      {lt:lo,    bolus:0, hold:0, ch:+1},
+      {le:hi,    bolus:0, hold:0, ch:0},
+      {le:+(hi+0.3).toFixed(2), bolus:0, hold:0, ch:-1},
+      {          bolus:0, hold:60,ch:-2}]}
+};
+function setTest(t){
+  state.test=t; const T=TESTS[t], r=$('lab'), b=boxFor('lab');
+  // set step and bounds BEFORE value so the browser doesn't snap/clamp the value
+  r.step=T.range[2]; r.max=T.range[1]; r.min=T.range[0]; b.step=T.range[2];
+  r.dataset.dec=T.dec;
+  setVal('lab', (T.target[0]+T.target[1])/2);
+  $('tLo').value=T.target[0]; $('tHi').value=T.target[1]; $('tLo').step=$('tHi').step=T.range[2];
+  $('labLbl').textContent=T.name; $('labUnit').textContent=T.unit; $('nomoH').textContent=`${T.name} (${T.unit})`;
+  $('tHint').textContent = t==='Xa'?'ELSO 0.3–0.7 · ISTH 0.3–0.5 IU/mL': t==='ACT'?'Historical ECMO range 180–220 s':'Laboratory-specific; ≈ 1.5–2.5 × baseline';
+  recalc();
+}
+function bandLabel(bands,i,d){
+  const f=v=>(+v).toFixed(d), b=bands[i], p=bands[i-1];
+  const lower = !p ? null : (p.lt!==undefined ? `${f(p.lt)}` : `> ${f(p.le)}`);
+  if(i===0) return `< ${f(b.lt)}`;
+  if(b.lt!==undefined) return `${lower} – < ${f(b.lt)}`;
+  if(b.le!==undefined) return `${lower} – ${f(b.le)}`;
+  return lower.startsWith('>') ? lower : `≥ ${lower}`;
+}
+function calcHeparin(w){
+  const T=TESTS[state.test], lo=raw('tLo'), hi=raw('tHi'), v=val('lab');
+  const U=raw('hU'), V=raw('hV'), rateIn=raw('hR'), ru=$('hRU').value, allowB=$('allowBolus').checked;
+  const conc = U/V;
+  $('conc').textContent = isFinite(conc)&&conc>0 ? `${conc.toFixed(0)} U/mL` : '';
+  const valid = [w,v,lo,hi,conc,rateIn].every(isFinite) && conc>0 && w>0 && lo<hi;
+  const tbody=$('nomo').querySelector('tbody');
+  if(!valid){ $('hAct').textContent = lo>=hi ? 'Target minimum must be below maximum.' : 'Complete all inputs.'; $('hKV').innerHTML=''; tbody.innerHTML=''; return; }
+  const bands=T.bands(lo,hi);
+  const idx=bands.findIndex(b => b.lt!==undefined ? v<b.lt : b.le!==undefined ? v<=b.le : true);
+  tbody.innerHTML = bands.map((b,i)=>`<tr class="${i===idx?'on':''}"><td>${bandLabel(bands,i,T.dec)}</td><td>${b.bolus?(allowB?b.bolus+' U/kg':'<span class="muted">('+b.bolus+' U/kg)</span>'):'—'}</td><td>${b.hold?b.hold+' min':'—'}</td><td>${b.ch?(b.ch>0?'+':'−')+Math.abs(b.ch)+' U/kg/h':'No change'}</td></tr>`).join('');
+  const a=bands[idx];
+  const cur = ru==='ukg'?rateIn : ru==='mlh'? rateIn*conc/w : rateIn/w;
+  const nu = Math.max(0, cur + a.ch);
+  const parts=[];
+  if(a.bolus && allowB){ const bol=Math.min(10000, Math.round(a.bolus*w/100)*100); parts.push(`Bolus ${bol.toLocaleString()} U`); }
+  if(a.hold) parts.push(`hold infusion ${a.hold} min`);
+  if(a.ch) parts.push(`${parts.length?'then ':''}${a.ch>0?'increase':'decrease'} by ${Math.abs(a.ch)} U/kg/h`);
+  let txt = a.ch===0 && !a.bolus ? 'In target — no change.' : parts.join(', ');
+  txt = txt.charAt(0).toUpperCase()+txt.slice(1)+(a.ch!==0||a.bolus?'.':'');
+  if(cur+a.ch<0) txt+=' (Rate floored at 0.)';
+  $('hAct').textContent = txt;
+  const status = idx<2 ? pill('warn','Below target') : idx===2 ? pill('ok','In target') : pill(idx>=4?'bad':'warn','Above target');
+  $('hKV').innerHTML = [
+    ['Status', status, ''],
+    ['Dosing weight', `${w.toFixed(1)}`, 'kg'],
+    ['Current rate', `${cur.toFixed(1)}`, 'U/kg/h'],
+    ['New rate', `${nu.toFixed(1)}`, 'U/kg/h'],
+    ['New rate', `${(nu*w/conc).toFixed(1)}`, `mL/h · ${Math.round(nu*w).toLocaleString()} U/h`],
+  ].map(([k,v,u])=>`<div><div class="k">${k}</div><div class="v">${v} <small>${u}</small></div></div>`).join('');
+}
+
+/* ---------- 4. GAS EXCHANGE ---------- */
+const cont = (hb,s,p) => state.k*hb*s/100 + 0.0031*(isFinite(p)?p:0);
+function calcGas(){
+  if(!state.qeTouched && isFinite(state.target)) setVal('qe', Math.round(state.target*10)/10);
+  const hb=val('hb'), co=val('co'), sa=val('sao2'), sv=val('svo2'), pa=raw('pao2'), pv=raw('pvo2');
+  const ca=cont(hb,sa,pa), cv=cont(hb,sv,pv);
+  const do2=co*ca*10, vo2=co*(ca-cv)*10, oer=(ca-cv)/ca*100;
+  $('cont').innerHTML=`${fmt(ca,1)} / ${fmt(cv,1)} <small>mL/dL</small>`;
+  $('do2').innerHTML=`${fmt(do2,0)} <small>mL/min</small>`;
+  $('vo2').innerHTML= vo2>0 ? `${fmt(vo2,0)} <small>mL/min</small>` : '—';
+  $('oer').innerHTML=`${fmt(oer,0)} <small>%</small> ${oer>40?pill('warn','high'):''}`;
+  const ratio=do2/vo2;
+  $('ratio').innerHTML = vo2>0 ? `${fmt(ratio,1)} ${ratio<3?pill('warn','< 3'):pill('ok','≥ 3')}` : '—';
+
+  const q=val('qe'), spre=val('spre'), spost=val('spost'), ppre=raw('ppre'), ppost=raw('ppost');
+  const dis = (isFinite(ppre)&&isFinite(ppost)) ? 0.0031*(ppost-ppre) : 0;
+  const tr = q*(state.k*hb*(spost-spre)/100 + dis)*10;
+  $('vo2ml').innerHTML = isFinite(tr) ? `${fmt(tr,0)} <small>mL/min</small>${dis?'':' <span class="tiny">(no PO₂: Hb-bound only)</span>'}` : '—';
+  const sh=tr/vo2*100;
+  $('share').innerHTML = (vo2>0&&isFinite(tr)) ? `${fmt(Math.min(sh,999),0)} <small>%</small>${sh>100?' '+pill('warn','> VO₂ — check inputs'):''}` : '—';
+  const fd=$('fdo2one').checked;
+  if(isFinite(ppost)){
+    const cls = !fd ? '' : ppost>=250?'ok': ppost>=150?'warn':'bad';
+    const t = !fd ? 'not interpretable (FdO₂ < 1.0)' : ppost>=250?'adequate': ppost>=150?'declining — trend':'suggests dysfunction';
+    $('ppostS').innerHTML = `${ppost.toFixed(0)} <small>mmHg</small> ${pill(cls,t)}`;
+  } else $('ppostS').textContent='—';
+  const dp=raw('dp'), dp0=raw('dp0');
+  if(isFinite(dp)&&isFinite(dp0)&&dp0>0){ const rise=(dp-dp0)/dp0*100;
+    $('dpS').innerHTML=`${rise>=0?'+':''}${rise.toFixed(0)} % ${pill(rise>=100?'bad':rise>=50?'warn':'ok', rise>=100?'≥ doubled':rise>=50?'rising':'stable')}`;
+  } else $('dpS').innerHTML = isFinite(dp) ? `${dp.toFixed(0)} <small>mmHg</small> <span class="tiny">add baseline</span>` : '—';
+
+  const den=spost-sv, R=(spre-sv)/den;
+  if(den>1 && isFinite(R)){ const Rc=Math.min(Math.max(R,0),1);
+    $('recirc').innerHTML=`${(Rc*100).toFixed(0)} % ${pill(Rc>=0.3?'bad':Rc>=0.15?'warn':'ok', Rc>=0.3?'high':Rc>=0.15?'moderate':'low')}`;
+    $('effq').innerHTML=`${fmt(q*(1-Rc),2)} <small>L/min</small>`;
+  } else { $('recirc').textContent='—'; $('effq').textContent='—'; }
+
+  const sw=raw('sw'), pc=raw('pc'), pt=raw('pct');
+  const ns = sw*pc/pt;
+  $('swOut').innerHTML = (isFinite(ns)&&pt>0) ? `${fmt(ns,1)} <small>L/min</small>` : '—';
+}
+
+/* ---------- 5. VV ECMO OXYGENATION MODEL ---------- */
+/* Severinghaus 1979 oxyhaemoglobin dissociation curve */
+const satOf = P => P<=0 ? 0 : 1/(23400/(P*P*P+150*P)+1);
+const contentP = (P,hb,k) => k*hb*satOf(P) + 0.0031*P;
+function pFromContent(C,hb,k){
+  if(!(C>0)) return 0;
+  const top=contentP(700,hb,k); if(C>top) return 700+(C-top)/0.0031;
+  let lo=0, hi=700; for(let i=0;i<60;i++){ const mid=(lo+hi)/2; if(contentP(mid,hb,k)<C) lo=mid; else hi=mid; } return (lo+hi)/2;
+}
+function vvModel(p){
+  const {qe,co,R,sh,fio2,hb,vo2,ppost,k}=p;
+  const pAO2=Math.max(0, fio2*(760-47) - 40/0.8);
+  const Cc=contentP(pAO2,hb,k), Cpost=contentP(ppost,hb,k);
+  const qeff=Math.min(Math.max(qe*(1-R),0), co);
+  let Cv=Cc-5, Ca=0, Cpa=0, feasible=true;
+  for(let i=0;i<400;i++){
+    Cpa=(qeff*Cpost+(co-qeff)*Cv)/co;
+    Ca=sh*Cpa+(1-sh)*Cc;
+    const Cn=Ca-vo2/(10*co);
+    if(Math.abs(Cn-Cv)<1e-7){ Cv=Cn; break; }
+    Cv=0.5*Cv+0.5*Cn;
+  }
+  if(Cv<=0.05) feasible=false;
+  const Pa=pFromContent(Ca,hb,k), Pv=pFromContent(Cv,hb,k), Ppa=pFromContent(Cpa,hb,k);
+  return {Ca,Cv,Cpa,qeff,pAO2,Pa,Sa:satOf(Pa),Sv:satOf(Pv),Spa:satOf(Ppa),feasible};
+}
+function vvChart(el,p,cur){
+  const W=Math.max(320,Math.min(640,Math.round(el.clientWidth||520))), H=Math.round(Math.max(230,W*0.52));
+  const m={t:26,r:18,b:38,l:42}, iw=W-m.l-m.r, ih=H-m.t-m.b, xMax=7, yMin=50, yMax=100;
+  const X=v=>m.l+v/xMax*iw, Y=v=>m.t+ih-(Math.max(yMin,Math.min(yMax,v))-yMin)/(yMax-yMin)*ih;
+  let s=`<svg class="vv" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Predicted SaO2 versus ECMO flow">`;
+  for(let i=0;i<=xMax;i++) s+=`<line class="grid-l" x1="${X(i)}" x2="${X(i)}" y1="${m.t}" y2="${m.t+ih}"/><text class="ax" x="${X(i)}" y="${m.t+ih+15}" text-anchor="middle">${i}</text>`;
+  for(let v=yMin;v<=yMax;v+=10) s+=`<line class="grid-l" x1="${m.l}" x2="${m.l+iw}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${m.l-6}" y="${Y(v)+3.5}" text-anchor="end">${v}</text>`;
+  s+=`<line class="lim" x1="${m.l}" x2="${m.l+iw}" y1="${Y(90)}" y2="${Y(90)}"/><text class="limt" x="${m.l+6}" y="${Y(90)-5}">SaO₂ 90 %</text>`;
+  const q60=0.6*p.co; if(q60<=xMax) s+=`<line class="tgt" x1="${X(q60)}" x2="${X(q60)}" y1="${m.t}" y2="${m.t+ih}"/><text class="ax" x="${X(q60)+4}" y="${m.t+10}">Q/CO 0.6</text>`;
+  const pts=[]; for(let q=0;q<=xMax+1e-9;q+=0.1){ const r=vvModel({...p,qe:q}); if(r.feasible && r.Sa*100>=yMin) pts.push(`${X(q).toFixed(1)},${Y(r.Sa*100).toFixed(1)}`); }
+  if(pts.length>1) s+=`<path class="curve on" d="M${pts.join('L')}"/>`;
+  if(cur.feasible && p.qe<=xMax) s+=`<circle class="pt" r="5.5" cx="${X(p.qe)}" cy="${Y(cur.Sa*100)}"/>`;
+  s+=`<text class="ttl" x="${m.l}" y="15">SaO₂ vs ECMO flow</text><text class="ax" x="${m.l+iw/2}" y="${H-4}" text-anchor="middle">ECMO blood flow (L/min)</text>`;
+  s+=`<text class="ax" transform="rotate(-90)" x="${-(m.t+ih/2)}" y="11" text-anchor="middle">SaO₂ (%)</text></svg>`;
+  el.innerHTML=s;
+}
+function calcVV(B){
+  if(!state.vvTouched && isFinite(state.target)) setVal('vvQe', Math.round(Math.min(7,state.target)*10)/10);
+  const p={qe:val('vvQe'),co:val('vvCO'),R:val('vvR')/100,sh:val('vvShunt')/100,fio2:val('vvFiO2')/100,hb:val('vvHb'),vo2:val('vvVO2'),ppost:raw('vvPpost'),k:state.k};
+  $('vvVO2hint').textContent = `≈ ${(p.vo2/B.dw).toFixed(1)} mL/kg/min of dosing weight (resting adult ≈ 3–4; sepsis/fever higher).`;
+  if(![p.qe,p.co,p.R,p.sh,p.fio2,p.hb,p.vo2,p.ppost].every(isFinite) || p.co<=0){ $('vvSa').textContent='—'; return; }
+  const r=vvModel(p);
+  vvChart($('gVV'),p,r);
+  if(!r.feasible){ $('vvSa').textContent='—'; $('vvKV').innerHTML=''; $('vvNote').textContent='With these settings oxygen delivery cannot meet the VO₂ entered (venous content would fall to zero). Increase ECMO flow, haemoglobin or cardiac output, or reduce VO₂.'; return; }
+  const sa=r.Sa*100, ratio=p.qe/p.co;
+  $('vvSa').innerHTML=`${sa.toFixed(0)} <small>%</small>`;
+  $('vvKV').innerHTML=[
+    ['PaO₂', fmt(r.Pa,0), 'mmHg'],
+    ['SvO₂ (pre-oxygenator)', fmt(r.Sv*100,0), '%'],
+    ['Pulmonary artery SO₂', fmt(r.Spa*100,0), '%'],
+    ['ECMO flow ÷ CO', `${fmt(ratio*100,0)} <small>%</small> ${pill(ratio>=0.6?'ok':'warn', ratio>=0.6?'≥ 60 %':'< 60 %')}`, ''],
+    ['Effective flow', fmt(r.qeff,2), 'L/min'],
+    ['DO₂', fmt(p.co*r.Ca*10,0), 'mL/min'],
+  ].map(([k,v,u])=>`<div><div class="k">${k}</div><div class="v">${v} <small>${u}</small></div></div>`).join('');
+  let note = sa<88 ? 'Hypoxaemia is predicted. The main levers are a higher ECMO-flow-to-CO ratio (more flow, or lower CO by treating fever/agitation), less recirculation, and a higher haemoglobin.' : 'Oxygenation predicted adequate at these settings.';
+  if(p.R>=0.3) note+=' Recirculation is high — check cannula separation and position.';
+  $('vvNote').textContent=note;
+}
+
+/* ---------- SELF-TESTS ---------- */
+/* Expected values computed independently (hand / separate script), not by this page. */
+function runSelfTests(){
+  const near=(a,b,t)=>Math.abs(a-b)<=t;
+  const pvl=DRAIN.find(c=>c.lab.includes('PVL 2555'));
+  const base={qe:6,co:6,R:0,sh:1,fio2:0.5,hb:10,vo2:250,ppost:400,k:1.34};
+  const T=[
+    ['BSA Du Bois 70 kg / 175 cm', bsaOf(70,175,'dubois'), 1.8481, 0.001],
+    ['BSA Mosteller 70 kg / 175 cm', bsaOf(70,175,'mosteller'), 1.8447, 0.001],
+    ['IBW Devine, male 175 cm', ibwOf(175,'M'), 70.465, 0.01],
+    ['Adjusted BW, male 175 cm, 100 kg', adjOf(100,ibwOf(175,'M')), 82.279, 0.01],
+    ['CaO₂ Hb 10, SaO₂ 94 %, PaO₂ 75 (k 1.34)', 1.34*10*0.94+0.0031*75, 12.8285, 0.001],
+    ['Heparin 2.1 mL/h, 500 U/mL, 70 kg → U/kg/h', 2.1*500/70, 15.0, 0.001],
+    ['aPTT 57 s, target 60–80 → band index', TESTS.aPTT.bands(60,80).findIndex(b=>b.lt!==undefined?57<b.lt:b.le!==undefined?57<=b.le:true), 1, 0],
+    ['Recirculation (75, 100, 70)', (75-70)/(100-70), 0.16667, 0.0001],
+    ['Sweep 4 × 55 ÷ 45', 4*55/45, 4.8889, 0.001],
+    ['HLS PVL 2555 ΔP at 4 L/min (chart)', dpAt(pvl,4), 28.05, 0.2],
+    ['Severinghaus S at 26.8 mmHg', satOf(26.8), 0.4986, 0.001],
+    ['3/8″ tubing loss, 1 m at 4 L/min', tubeLoss(4,1,9.525), 10.39, 0.05],
+    ['VV model: full flow, no shunt bypass → SaO₂ ≈ post-oxy', vvModel(base).Sa, 0.9996, 0.002],
+    ['VV model: SaO₂ rises with flow', vvModel({...base,sh:0.7,co:6,qe:5}).Sa > vvModel({...base,sh:0.7,co:6,qe:3}).Sa ? 1:0, 1, 0],
+    ['Circuit: zero flow → P1 = CVP', circuitModel({q:0,mode:'VV',cvp:10,map:75,k:1.3,lenD:1.5,lenR:1.5,id:9.525,oxy:0,pumpH:0,dpD:0,dpR:0}).P1, 10, 1e-9],
+  ];
+  const res=T.map(([n,got,exp,tol])=>({n,got,exp,ok:isFinite(got)&&near(got,exp,tol)}));
+  const pass=res.filter(r=>r.ok).length;
+  const pillEl=$('stPill'); pillEl.textContent=`Self-tests ${pass}/${res.length} ${pass===res.length?'✓':'✗'}`; pillEl.classList.add(pass===res.length?'ok':'bad');
+  $('stPanel').innerHTML='<strong>Self-tests</strong> — run on every page load against independently computed values.<div class="tablewrap"><table class="nomo"><thead><tr><th>Check</th><th>Expected</th><th>Got</th><th></th></tr></thead><tbody>'+
+    res.map(r=>`<tr><td>${r.n}</td><td>${(+r.exp).toFixed(4)}</td><td>${isFinite(r.got)?(+r.got).toFixed(4):'—'}</td><td>${r.ok?pill('ok','pass'):pill('bad','fail')}</td></tr>`).join('')+'</tbody></table></div>';
+  if(location.hash==='#selftest'){ $('stPanel').classList.remove('hidden'); pillEl.setAttribute('aria-expanded','true'); }
+}
+
+/* ---------- main ---------- */
+function recalc(){
+  state.k=parseFloat($('hbK').value)||1.34;
+  document.querySelectorAll('.kTxt').forEach(e=>e.textContent=state.k.toFixed(2));
+  const B=body();
+  $('bsaLbl').textContent=`Body surface area (${B.m==='mosteller'?'Mosteller':'Du Bois'})`;
+  $('bsaF').textContent = B.m==='mosteller' ? 'BSA = √(H × W ÷ 3600)' : 'BSA = 0.007184 × H^0.725 × W^0.425';
+  $('bsaOut').innerHTML = isFinite(B.bsa) ? `${B.bsa.toFixed(2)} <small style="font-size:14px;color:var(--sub)">m²</small>` : '—';
+  const ib = isFinite(B.ibw) ? `${B.ibw.toFixed(1)} kg` : 'n/a < 152 cm';
+  let warn = '';
+  if(B.pick!=='actual' && B.used==='actual') warn=' · <span class="pill warn">Devine undefined below 152 cm — using actual</span>';
+  $('ptInfo').innerHTML = `BMI <b>${fmt(B.bmi,1)}</b> · Ideal <b>${ib}</b> · Adjusted <b>${isFinite(B.ibw)?B.adj.toFixed(1)+' kg':'n/a'}</b> · Dosing weight <b>${B.dw.toFixed(1)} kg</b> (${B.used})${warn}`;
+  if(!(B.w>0) || !isFinite(B.bsa)) return;
+  calcFlow(B.dw,B.bsa); calcCannula(B.dw); calcHeparin(B.dw); calcGas(); calcVV(B);
+}
+setTest('aPTT');
+runSelfTests();
+let rz; window.addEventListener('resize',()=>{clearTimeout(rz); rz=setTimeout(recalc,120);});
+})();
+</script>
 </body>
 </html>
-
